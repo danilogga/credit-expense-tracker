@@ -39,13 +39,16 @@ export default async function MerchantsPage({ searchParams }: { searchParams: Se
   const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
 
   return (
-    <div className="panel">
+    <div>
       <QueryToast successMessage={params.ok} errorMessage={params.error} />
-      <h2>Estabelecimentos</h2>
-      <p className="muted">
-        Ao alterar a categoria do estabelecimento, as despesas existentes dele também são atualizadas.
-      </p>
+      <div className="page-header">
+        <div>
+          <h1>Estabelecimentos</h1>
+          <p className="muted">Alterar a categoria atualiza todas as despesas existentes do estabelecimento</p>
+        </div>
+      </div>
 
+      <div className="panel">
       <table>
         <thead>
           <tr>
@@ -101,6 +104,7 @@ export default async function MerchantsPage({ searchParams }: { searchParams: Se
           Página {page} de {totalPages} ({total} estabelecimentos)
         </span>
         <PaginationControl currentPage={page} totalPages={totalPages} />
+      </div>
       </div>
     </div>
   );

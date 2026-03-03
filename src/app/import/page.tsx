@@ -12,13 +12,16 @@ export default async function ImportPage({ searchParams }: { searchParams: Searc
     : undefined;
 
   return (
-    <div className="panel">
+    <div>
       <QueryToast successMessage={successMessage} errorMessage={params.error} />
-      <h2>Importação de CSV</h2>
-      <p className="muted">
-        Formato esperado: colunas de <b>data</b>, <b>estabelecimento</b> (ou <b>lançamento</b>) e <b>valor</b>.
-      </p>
+      <div className="page-header">
+        <div>
+          <h1>Importação de CSV</h1>
+          <p className="muted">Formato esperado: colunas de <b>data</b>, <b>estabelecimento</b> (ou <b>lançamento</b>) e <b>valor</b></p>
+        </div>
+      </div>
 
+      <div className="panel">
       <ImportDropzone action={importCsvAction} />
 
       {hasResult ? (
@@ -28,6 +31,7 @@ export default async function ImportPage({ searchParams }: { searchParams: Searc
           <p className="tag">Linhas inválidas: {params.invalid ?? "0"}</p>
         </div>
       ) : null}
+      </div>
     </div>
   );
 }

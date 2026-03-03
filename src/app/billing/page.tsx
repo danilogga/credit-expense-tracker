@@ -57,14 +57,16 @@ export default async function BillingPage({ searchParams }: { searchParams: Sear
     <div>
       <InvoiceMonthMemory currentMonth={month} hasExplicitMonth={hasExplicitMonth} />
       <QueryToast successMessage={params.ok} errorMessage={params.error} />
-      <section className="panel">
-        <h2>Configuração da Fatura</h2>
+      <div className="page-header">
+        <div>
+          <h1>Configuração da Fatura</h1>
+          <p className="muted">Dia de virada e exceções mensais</p>
+        </div>
         <form className="inline" method="get">
           <MonthYearSelect key={`billing-filter-${month}`} monthKey={month} idPrefix="billing-filter" />
           <button type="submit">Ver mês</button>
         </form>
-
-      </section>
+      </div>
 
       <section className="panel grid">
         <div>

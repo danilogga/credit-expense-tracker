@@ -4,13 +4,6 @@ import { useRef, useState } from "react";
 import { updateExpenseCategoryAction } from "@/app/actions";
 import { CategoryIcon } from "@/components/category-icon";
 
-function contrastColor(hex: string): string {
-  const r = parseInt(hex.slice(1, 3), 16);
-  const g = parseInt(hex.slice(3, 5), 16);
-  const b = parseInt(hex.slice(5, 7), 16);
-  return (r * 299 + g * 587 + b * 114) / 1000 >= 128 ? "#1a1a1a" : "#ffffff";
-}
-
 type CategoryOption = {
   id: string;
   name: string;
@@ -41,16 +34,20 @@ export function ExpenseCategoryCell({
   const formRef = useRef<HTMLFormElement>(null);
 
   if (!editing) {
-    const fg = contrastColor(currentCategoryColor);
     return (
       <button
         type="button"
         className="category-pill"
-        style={{ backgroundColor: currentCategoryColor, color: fg, border: "none", cursor: "pointer" }}
+        style={{
+          backgroundColor: `${currentCategoryColor}22`,
+          color: currentCategoryColor,
+          border: `1px solid ${currentCategoryColor}55`,
+          cursor: "pointer",
+        }}
         onClick={() => setEditing(true)}
         title="Clique para alterar categoria"
       >
-        <CategoryIcon icon={currentCategorySymbol} color={fg} size={14} />
+        <CategoryIcon icon={currentCategorySymbol} color={currentCategoryColor} size={14} />
         {currentCategoryName}
       </button>
     );

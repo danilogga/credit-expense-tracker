@@ -27,58 +27,73 @@ export default async function EditMerchantPage({
 
   if (!merchant) {
     return (
-      <div className="panel">
-        <h2>Estabelecimento não encontrado</h2>
-        <Link href="/merchants" className="btn-secondary">
-          <ArrowLeft size={15} />
-          Voltar
-        </Link>
+      <div>
+        <div className="page-header">
+          <h1>Estabelecimento não encontrado</h1>
+        </div>
+        <div className="panel" style={{ maxWidth: 520 }}>
+          <Link href="/merchants" className="btn-secondary">
+            <ArrowLeft size={15} />
+            Voltar
+          </Link>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="panel">
+    <div>
       <QueryToast errorMessage={query.error} />
-      <h2>Editar estabelecimento</h2>
-
-      <form className="category-form" action={updateMerchantAction}>
-        <input type="hidden" name="merchantId" value={merchant.id} />
-
-        <label>Nome</label>
-        <input value={merchant.name} disabled />
-
-        <label htmlFor="nickname">Apelido</label>
-        <input
-          id="nickname"
-          name="nickname"
-          placeholder="Ex: Mercadão do Bairro"
-          defaultValue={merchant.nickname ?? ""}
-        />
-
-        <label htmlFor="categoryId">Categoria</label>
-        <select id="categoryId" name="categoryId" defaultValue={merchant.categoryId}>
-          {categories.map((category) => (
-            <option key={category.id} value={category.id}>
-              {category.name}
-            </option>
-          ))}
-        </select>
-        <p className="muted" style={{ marginTop: 0 }}>
-          Ao alterar a categoria, todas as despesas deste estabelecimento também serão atualizadas.
-        </p>
-
-        <div className="inline">
-          <button type="submit">
-            <FloppyDisk size={16} weight="bold" />
-            Salvar alterações
-          </button>
-          <Link href="/merchants" className="btn-secondary">
-            <X size={15} />
-            Cancelar
-          </Link>
+      <div className="page-header">
+        <div>
+          <h1>Editar estabelecimento</h1>
+          <p className="muted">{merchant.nickname ?? merchant.name}</p>
         </div>
-      </form>
+        <Link href="/merchants" className="btn-secondary">
+          <ArrowLeft size={15} />
+          Voltar à lista
+        </Link>
+      </div>
+
+      <div className="panel" style={{ maxWidth: 520 }}>
+        <form className="category-form" action={updateMerchantAction}>
+          <input type="hidden" name="merchantId" value={merchant.id} />
+
+          <label>Nome</label>
+          <input value={merchant.name} disabled />
+
+          <label htmlFor="nickname">Apelido</label>
+          <input
+            id="nickname"
+            name="nickname"
+            placeholder="Ex: Mercadão do Bairro"
+            defaultValue={merchant.nickname ?? ""}
+          />
+
+          <label htmlFor="categoryId">Categoria</label>
+          <select id="categoryId" name="categoryId" defaultValue={merchant.categoryId}>
+            {categories.map((category) => (
+              <option key={category.id} value={category.id}>
+                {category.name}
+              </option>
+            ))}
+          </select>
+          <p className="muted" style={{ marginTop: 0 }}>
+            Ao alterar a categoria, todas as despesas deste estabelecimento também serão atualizadas.
+          </p>
+
+          <div className="inline">
+            <button type="submit">
+              <FloppyDisk size={16} weight="bold" />
+              Salvar alterações
+            </button>
+            <Link href="/merchants" className="btn-secondary">
+              <X size={15} />
+              Cancelar
+            </Link>
+          </div>
+        </form>
+      </div>
     </div>
   );
 }

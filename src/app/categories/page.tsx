@@ -9,13 +9,6 @@ import { ensureDefaults } from "@/lib/domain";
 import { formatCents } from "@/lib/money";
 import { prisma } from "@/lib/prisma";
 
-function contrastColor(hex: string): string {
-  const r = parseInt(hex.slice(1, 3), 16);
-  const g = parseInt(hex.slice(3, 5), 16);
-  const b = parseInt(hex.slice(5, 7), 16);
-  return (r * 299 + g * 587 + b * 114) / 1000 >= 128 ? "#1a1a1a" : "#ffffff";
-}
-
 const PAGE_SIZE = 20;
 
 type SearchParams = Promise<{ ok?: string; error?: string; page?: string }>;
@@ -39,17 +32,20 @@ export default async function CategoriesPage({ searchParams }: { searchParams: S
   const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
 
   return (
-    <div className="panel">
+    <div>
       <QueryToast successMessage={params.ok} errorMessage={params.error} />
-      <h2>Categorias</h2>
-
-      <p>
+      <div className="page-header">
+        <div>
+          <h1>Categorias</h1>
+          <p className="muted">Gerencie as categorias de despesas</p>
+        </div>
         <Link href="/categories/new" className="btn-primary">
           <Plus size={16} weight="bold" />
           Nova categoria
         </Link>
-      </p>
+      </div>
 
+      <div className="panel">
       <table>
         <thead>
           <tr>
@@ -66,9 +62,13 @@ export default async function CategoriesPage({ searchParams }: { searchParams: S
               <td>
                 <span
                   className="category-pill"
-                  style={{ backgroundColor: category.color, color: contrastColor(category.color) }}
+                  style={{
+                    backgroundColor: `${category.color}22`,
+                    color: category.color,
+                    border: `1px solid ${category.color}55`,
+                  }}
                 >
-                  <CategoryIcon icon={category.symbol} color={contrastColor(category.color)} size={15} />
+                  <CategoryIcon icon={category.symbol} color={category.color} size={15} />
                   {category.name}
                 </span>
               </td>
@@ -96,6 +96,7 @@ export default async function CategoriesPage({ searchParams }: { searchParams: S
           Página {page} de {totalPages} ({total} categorias)
         </span>
         <PaginationControl currentPage={page} totalPages={totalPages} />
+      </div>
       </div>
     </div>
   );

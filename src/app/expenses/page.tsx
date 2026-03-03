@@ -38,14 +38,20 @@ export default async function ExpensesPage({ searchParams }: { searchParams: Sea
   });
 
   return (
-    <div className="panel">
+    <div>
       <InvoiceMonthMemory currentMonth={month} hasExplicitMonth={hasExplicitMonth} />
-      <h2>Despesas por fatura</h2>
-      <form className="inline" method="get">
-        <MonthYearSelect key={`expenses-filter-${month}`} monthKey={month} idPrefix="expenses-filter" />
-        <button type="submit">Filtrar</button>
-      </form>
+      <div className="page-header">
+        <div>
+          <h1>Despesas por fatura</h1>
+          <p className="muted">Listagem de despesas agrupadas por mês de fatura</p>
+        </div>
+        <form className="inline" method="get">
+          <MonthYearSelect key={`expenses-filter-${month}`} monthKey={month} idPrefix="expenses-filter" />
+          <button type="submit">Filtrar</button>
+        </form>
+      </div>
 
+      <div className="panel">
       <table>
         <thead>
           <tr>
@@ -82,6 +88,7 @@ export default async function ExpensesPage({ searchParams }: { searchParams: Sea
           )}
         </tbody>
       </table>
+      </div>
     </div>
   );
 }

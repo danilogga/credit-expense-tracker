@@ -70,13 +70,16 @@ export default async function DashboardPage({ searchParams }: { searchParams: Se
     <div>
       <InvoiceMonthMemory currentMonth={month} hasExplicitMonth={hasExplicitMonth} />
       <QueryToast successMessage={params.ok} errorMessage={params.error} />
-      <section className="panel">
-        <h2>Monitoramento mensal (mês da fatura)</h2>
+      <div className="page-header">
+        <div>
+          <h1>Monitoramento</h1>
+          <p className="muted">Despesas por mês de fatura</p>
+        </div>
         <form className="inline" method="get">
           <MonthYearSelect key={`dashboard-filter-${month}`} monthKey={month} idPrefix="dashboard-filter" />
           <button type="submit">Ver fatura</button>
         </form>
-      </section>
+      </div>
 
       <section className="panel stats">
         <div className="stat">
