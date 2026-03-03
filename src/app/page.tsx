@@ -1,66 +1,171 @@
-import Image from "next/image";
-import styles from "./page.module.css";
+import { resolveMonthKey } from "@/lib/date";
+import { MonthYearSelect } from "@/components/month-year-select";
+import { PaginationControl } from "@/components/pagination-control";
+import { InvoiceMonthMemory } from "@/components/invoice-month-memory";
+import { CategorySpendChart } from "@/components/category-spend-chart";
+import { CategoryIcon } from "@/components/category-icon";
+import { ExpenseCategoryCell } from "@/components/expense-category-cell";
+import { QueryToast } from "@/components/query-toast";
+import { dashboardForMonth, ensureDefaults } from "@/lib/domain";
+import { formatCents } from "@/lib/money";
+import { prisma } from "@/lib/prisma";
 
-export default function Home() {
+function contrastColor(hex: string): string {
+  const r = parseInt(hex.slice(1, 3), 16);
+  const g = parseInt(hex.slice(3, 5), 16);
+  const b = parseInt(hex.slice(5, 7), 16);
+  return (r * 299 + g * 587 + b * 114) / 1000 >= 128 ? "#1a1a1a" : "#ffffff";
+}
+
+type SearchParams = Promise<{
+  month?: string;
+  filterMonth?: string;
+  filterYear?: string;
+  page?: string;
+  categoryId?: string;
+  ok?: string;
+  error?: string;
+}>;
+
+export default async function DashboardPage({ searchParams }: { searchParams: SearchParams }) {
+  const params = await searchParams;
+  const month = resolveMonthKey({
+    month: params.month,
+    monthNumber: params.filterMonth,
+    year: params.filterYear,
+  });
+  const hasExplicitMonth = Boolean(params.month || params.filterMonth || params.filterYear);
+  const page = Math.max(1, Number(params.page ?? "1") || 1);
+  const categoryId = params.categoryId ?? null;
+  const pageSize = 15;
+  const skip = (page - 1) * pageSize;
+
+  await ensureDefaults();
+
+  const expenseWhere = {
+    invoiceMonth: month,
+    ...(categoryId ? { categoryId } : {}),
+  };
+
+  const [dashboard, totalExpenses, expenses, categories] = await Promise.all([
+    dashboardForMonth(month),
+    prisma.expense.count({ where: expenseWhere }),
+    prisma.expense.findMany({
+      where: expenseWhere,
+      include: { merchant: true, category: true },
+      orderBy: [{ expenseDate: "desc" }, { importedAt: "desc" }],
+      skip,
+      take: pageSize,
+    }),
+    prisma.category.findMany({
+      orderBy: { name: "asc" },
+      select: { id: true, name: true, color: true, symbol: true },
+    }),
+  ]);
+
+  const spent = dashboard.totalSpentCents;
+  const totalPages = Math.max(1, Math.ceil(totalExpenses / pageSize));
+
   return (
-    <div className={styles.page}>
-      <main className={styles.main}>
-        <Image
-          className={styles.logo}
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className={styles.intro}>
-          <h1>To get started, edit the page.tsx file.</h1>
-          <p>
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
+    <div>
+      <InvoiceMonthMemory currentMonth={month} hasExplicitMonth={hasExplicitMonth} />
+      <QueryToast successMessage={params.ok} errorMessage={params.error} />
+      <section className="panel">
+        <h2>Monitoramento mensal (mês da fatura)</h2>
+        <form className="inline" method="get">
+          <MonthYearSelect key={`dashboard-filter-${month}`} monthKey={month} idPrefix="dashboard-filter" />
+          <button type="submit">Ver fatura</button>
+        </form>
+      </section>
+
+      <section className="panel stats">
+        <div className="stat">
+          <span className="muted">Total gasto (fatura)</span>
+          <b>{formatCents(spent)}</b>
         </div>
-        <div className={styles.ctas}>
+      </section>
+
+      <section className="panel">
+        <h3>Gasto por categoria</h3>
+        <CategorySpendChart data={dashboard.byCategory} />
+      </section>
+
+      <section className="panel">
+        <h3>Despesas da fatura</h3>
+
+        <div className="category-filter-bar">
           <a
-            className={styles.primary}
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
+            href={`/?month=${month}`}
+            className={categoryId ? "category-filter-all" : "category-filter-all category-filter-all-active"}
           >
-            <Image
-              className={styles.logo}
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
+            Todas
           </a>
-          <a
-            className={styles.secondary}
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
+          {categories.map((cat) => {
+            const active = categoryId === cat.id;
+            const fg = contrastColor(cat.color);
+            return (
+              <a
+                key={cat.id}
+                href={active ? `/?month=${month}` : `/?month=${month}&categoryId=${cat.id}`}
+                className="category-pill category-filter-pill"
+                style={
+                  active
+                    ? { backgroundColor: cat.color, color: fg }
+                    : { backgroundColor: `${cat.color}22`, color: cat.color, border: `1px solid ${cat.color}55` }
+                }
+              >
+                <CategoryIcon icon={cat.symbol} color={active ? fg : cat.color} size={13} />
+                {cat.name}
+              </a>
+            );
+          })}
         </div>
-      </main>
+
+        <table>
+          <thead>
+            <tr>
+              <th>Data da compra</th>
+              <th>Estabelecimento</th>
+              <th>Categoria</th>
+              <th className="col-right">Valor</th>
+            </tr>
+          </thead>
+          <tbody>
+            {expenses.length === 0 ? (
+              <tr>
+                <td colSpan={4}>Sem despesas para esta fatura.</td>
+              </tr>
+            ) : (
+              expenses.map((expense) => (
+                <tr key={expense.id}>
+                  <td>{expense.expenseDate.toLocaleDateString("pt-BR")}</td>
+                  <td>{expense.merchant.nickname || expense.merchant.name}</td>
+                  <td>
+                    <ExpenseCategoryCell
+                      expenseId={expense.id}
+                      currentCategoryId={expense.categoryId}
+                      currentCategoryName={expense.category.name}
+                      currentCategorySymbol={expense.category.symbol}
+                      currentCategoryColor={expense.category.color}
+                      month={month}
+                      page={page}
+                      categories={categories}
+                    />
+                  </td>
+                  <td className="col-right">{formatCents(expense.amountCents)}</td>
+                </tr>
+              ))
+            )}
+          </tbody>
+        </table>
+
+        <div className="pagination">
+          <span className="muted">
+            Página {page} de {totalPages} ({totalExpenses} lançamentos)
+          </span>
+          <PaginationControl currentPage={page} totalPages={totalPages} />
+        </div>
+      </section>
     </div>
   );
 }

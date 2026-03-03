@@ -1,0 +1,76 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model Category {
+  id         String     @id @default(cuid())
+  name       String     @unique
+  color      String     @default("#37A8A4")
+  symbol     String     @default("•")
+  limitCents Int?
+  merchants  Merchant[]
+  expenses   Expense[]
+  createdAt  DateTime   @default(now())
+  updatedAt  DateTime   @updatedAt
+}
+
+model Merchant {
+  id             String    @id @default(cuid())
+  name           String
+  normalizedName String    @unique
+  nickname       String?
+  categoryId     String
+  category       Category  @relation(fields: [categoryId], references: [id])
+  expenses       Expense[]
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  @@index([categoryId])
+}
+
+model Expense {
+  id               String    @id @default(cuid())
+  expenseDate      DateTime
+  invoiceMonth     String    @default("")
+  amountCents      Int
+  establishmentRaw String
+  merchantId       String
+  categoryId       String
+  fingerprint      String    @unique
+  importedAt       DateTime  @default(now())
+
+  merchant Merchant @relation(fields: [merchantId], references: [id])
+  category Category @relation(fields: [categoryId], references: [id])
+
+  @@index([expenseDate])
+  @@index([invoiceMonth])
+  @@index([merchantId])
+  @@index([categoryId])
+}
+
+model MonthlyBudget {
+  id          String   @id @default(cuid())
+  month       String   @unique
+  amountCents Int
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model BillingSettings {
+  id                Int      @id
+  defaultClosingDay Int
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+}
+
+model BillingClosingOverride {
+  id         String   @id @default(cuid())
+  month      String   @unique
+  closingDay Int
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+}

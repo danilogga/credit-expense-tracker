@@ -1,0 +1,3 @@
+-- AlterTable
+ALTER TABLE "Category" ADD COLUMN     "color" TEXT NOT NULL DEFAULT '#37A8A4',
+ADD COLUMN     "symbol" TEXT NOT NULL DEFAULT '•';

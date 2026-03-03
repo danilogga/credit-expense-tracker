@@ -1,36 +1,65 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Controle de Despesas (V1)
 
-## Getting Started
+Aplicação Next.js para controle de despesas de cartão com importação CSV, deduplicação, categorias com limite e dashboard mensal.
 
-First, run the development server:
+## Requisitos
+
+- Node.js 20+
+- Postgres local rodando
+
+## Rodando localmente
+
+1. Instale dependências:
+
+```bash
+npm install
+```
+
+2. Rode migrações:
+
+```bash
+npx prisma migrate dev
+npx prisma generate
+```
+
+3. Inicie a aplicação:
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Aplicação em `http://localhost:3000`.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Formato do CSV
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+Arquivo com cabeçalho e 3 colunas:
 
-## Learn More
+- `data`
+- `estabelecimento` ou `lançamento`
+- `valor`
 
-To learn more about Next.js, take a look at the following resources:
+Exemplo:
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+```csv
+data,lançamento,valor
+2025-10-01,BIG LAR,5.13
+2025-10-01,ATACADAO DA CARNE,94.41
+```
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Regras implementadas
 
-## Deploy on Vercel
+- Deduplicação por combinação `data + estabelecimento(normalizado) + valor`
+- Estabelecimento novo é cadastrado automaticamente
+- Despesa nova entra com categoria do estabelecimento (inicialmente `Outros`)
+- Reclassificação de estabelecimento atualiza despesas existentes e futuras
+- Categorias com limite mensal configurável
+- Dashboard por mês de fatura
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## Mês de fatura e dia de virada
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- A competência é por **mês da fatura**, não por mês da compra.
+- Regra:
+  - compra até o dia de virada do mês -> fatura do mês seguinte
+  - compra após o dia de virada do mês -> fatura do mês subsequente
+- Existe um dia padrão de virada (inicial: `31`) e exceções por mês.
+- Ao mudar o dia padrão ou uma exceção mensal, o sistema recalcula as despesas já importadas.
