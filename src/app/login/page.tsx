@@ -1,3 +1,4 @@
+import { Wallet } from "@phosphor-icons/react/dist/ssr";
 import { loginAction } from "./actions";
 
 interface Props {
@@ -11,8 +12,13 @@ export default async function LoginPage({ searchParams }: Props) {
     <div className="login-container">
       <div className="login-card">
         <div className="login-brand">
-          <span className="login-logo">💳</span>
-          <h1>Expense Tracker</h1>
+          <div className="login-brand-mark">
+            <Wallet size={22} weight="fill" />
+          </div>
+          <div>
+            <h1>Planner</h1>
+            <p>Cartão de crédito</p>
+          </div>
         </div>
 
         {error && <p className="login-error">{error}</p>}
@@ -40,7 +46,7 @@ export default async function LoginPage({ searchParams }: Props) {
               placeholder="••••••••"
             />
           </div>
-          <button type="submit" style={{ width: "100%", justifyContent: "center" }}>
+          <button type="submit" className="login-submit">
             Entrar
           </button>
         </form>
