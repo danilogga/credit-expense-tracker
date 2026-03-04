@@ -5,6 +5,8 @@ import { InvoiceMonthMemory } from "@/components/invoice-month-memory";
 import { CategorySpendChart } from "@/components/category-spend-chart";
 import { CategoryIcon } from "@/components/category-icon";
 import { ExpenseCategoryCell } from "@/components/expense-category-cell";
+import { AutoSubmitForm } from "@/components/auto-submit-form";
+import { ExpenseInvoiceMonthCell } from "@/components/expense-invoice-month-cell";
 import { QueryToast } from "@/components/query-toast";
 import { dashboardForMonth, ensureDefaults } from "@/lib/domain";
 import { formatCents } from "@/lib/money";
@@ -75,10 +77,9 @@ export default async function DashboardPage({ searchParams }: { searchParams: Se
           <h1>Monitoramento</h1>
           <p className="muted">Despesas por mês de fatura</p>
         </div>
-        <form className="inline" method="get">
+        <AutoSubmitForm className="inline" method="get">
           <MonthYearSelect key={`dashboard-filter-${month}`} monthKey={month} idPrefix="dashboard-filter" />
-          <button type="submit">Ver fatura</button>
-        </form>
+        </AutoSubmitForm>
       </div>
 
       <section className="panel stats">
@@ -127,20 +128,30 @@ export default async function DashboardPage({ searchParams }: { searchParams: Se
         <table>
           <thead>
             <tr>
+              <th>Mês de referência</th>
               <th>Data da compra</th>
               <th>Estabelecimento</th>
               <th>Categoria</th>
+              <th>Parcela</th>
               <th className="col-right">Valor</th>
             </tr>
           </thead>
           <tbody>
             {expenses.length === 0 ? (
               <tr>
-                <td colSpan={4}>Sem despesas para esta fatura.</td>
+                <td colSpan={6}>Sem despesas para esta fatura.</td>
               </tr>
             ) : (
               expenses.map((expense) => (
                 <tr key={expense.id}>
+                  <td>
+                    <ExpenseInvoiceMonthCell
+                      expenseId={expense.id}
+                      invoiceMonth={expense.invoiceMonth}
+                      currentPageMonth={month}
+                      page={page}
+                    />
+                  </td>
                   <td>{expense.expenseDate.toLocaleDateString("pt-BR")}</td>
                   <td>{expense.merchant.nickname || expense.merchant.name}</td>
                   <td>
@@ -154,6 +165,11 @@ export default async function DashboardPage({ searchParams }: { searchParams: Se
                       page={page}
                       categories={categories}
                     />
+                  </td>
+                  <td className="muted">
+                    {expense.installmentCurrent != null && expense.installmentTotal != null
+                      ? `${expense.installmentCurrent}/${expense.installmentTotal}`
+                      : "—"}
                   </td>
                   <td className="col-right">{formatCents(expense.amountCents)}</td>
                 </tr>

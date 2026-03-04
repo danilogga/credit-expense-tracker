@@ -15,16 +15,14 @@ type CsvRow = {
 type BillingConfig = {
   defaultClosingDay: number;
   effectiveClosingDay: number;
-  isOverride: boolean;
 };
 
 function supportsBillingConfig(): boolean {
   const client = prisma as unknown as {
     billingSettings?: unknown;
-    billingClosingOverride?: unknown;
   };
 
-  return Boolean(client.billingSettings && client.billingClosingOverride);
+  return Boolean(client.billingSettings);
 }
 
 function normalizeHeader(header: string): string {
@@ -108,12 +106,25 @@ export async function ensureDefaults(): Promise<{ defaultCategoryId: string }> {
   return { defaultCategoryId: defaultCategory.id };
 }
 
-function fingerprint(input: { date: Date; normalizedName: string; amountCents: number }): string {
-  return [
+function parseInstallment(name: string): { cleanName: string; current: number; total: number } | null {
+  const match = name.match(/^(.+?)(\d{1,2})\/(\d{1,2})$/);
+  if (!match) return null;
+  const current = parseInt(match[2], 10);
+  const total = parseInt(match[3], 10);
+  if (current < 1 || total < 1 || current > total) return null;
+  return { cleanName: match[1].trimEnd(), current, total };
+}
+
+function fingerprint(input: { date: Date; normalizedName: string; amountCents: number; installmentCurrent?: number; installmentTotal?: number }): string {
+  const parts = [
     input.date.toISOString().slice(0, 10),
     input.normalizedName,
     String(input.amountCents),
-  ].join("|");
+  ];
+  if (input.installmentCurrent !== undefined && input.installmentTotal !== undefined) {
+    parts.push(`${input.installmentCurrent}/${input.installmentTotal}`);
+  }
+  return parts.join("|");
 }
 
 export async function getBillingConfigForMonth(month: string): Promise<BillingConfig> {
@@ -123,7 +134,6 @@ export async function getBillingConfigForMonth(month: string): Promise<BillingCo
     return {
       defaultClosingDay: 31,
       effectiveClosingDay: clampClosingDay(31, month),
-      isOverride: false,
     };
   }
 
@@ -132,34 +142,14 @@ export async function getBillingConfigForMonth(month: string): Promise<BillingCo
       findUnique: (args: { where: { id: number } }) => Promise<{ defaultClosingDay: number } | null>;
       update: (args: { where: { id: number }; data: { defaultClosingDay: number } }) => Promise<unknown>;
     };
-    billingClosingOverride: {
-      findUnique: (args: { where: { month: string } }) => Promise<{ closingDay: number } | null>;
-      findMany: (args: { orderBy: { month: "asc" | "desc" }; take: number }) => Promise<Array<{
-        id: string;
-        month: string;
-        closingDay: number;
-      }>>;
-      upsert: (args: {
-        where: { month: string };
-        update: { closingDay: number };
-        create: { month: string; closingDay: number };
-      }) => Promise<unknown>;
-      deleteMany: (args: { where: { month: string } }) => Promise<unknown>;
-    };
   };
 
-  const [settings, override] = await Promise.all([
-    client.billingSettings.findUnique({ where: { id: 1 } }),
-    client.billingClosingOverride.findUnique({ where: { month } }),
-  ]);
-
+  const settings = await client.billingSettings.findUnique({ where: { id: 1 } });
   const defaultClosingDay = settings?.defaultClosingDay ?? 31;
-  const configuredDay = override?.closingDay ?? defaultClosingDay;
 
   return {
     defaultClosingDay,
-    effectiveClosingDay: clampClosingDay(configuredDay, month),
-    isOverride: Boolean(override),
+    effectiveClosingDay: clampClosingDay(defaultClosingDay, month),
   };
 }
 
@@ -168,8 +158,16 @@ export async function computeInvoiceMonth(expenseDate: Date): Promise<string> {
   const { effectiveClosingDay } = await getBillingConfigForMonth(expenseMonth);
   const expenseDay = expenseDate.getDate();
 
-  const monthsToAdd = expenseDay <= effectiveClosingDay ? 1 : 2;
-  return toMonthKey(addMonths(expenseDate, monthsToAdd));
+  if (expenseDay <= effectiveClosingDay) {
+    // Transaction is within the current month's closing window.
+    // The invoice closes this month, so reference = transaction month.
+    return expenseMonth;
+  } else {
+    // Transaction is past the closing day.
+    // The invoice closes next month, so reference = transaction month + 1.
+    const firstOfMonth = new Date(expenseDate.getFullYear(), expenseDate.getMonth(), 1);
+    return toMonthKey(addMonths(firstOfMonth, 1));
+  }
 }
 
 export async function importCsvContent(csvContent: string): Promise<{
@@ -205,7 +203,16 @@ export async function importCsvContent(csvContent: string): Promise<{
         continue;
       }
 
-      const normalizedName = normalizeEstablishment(establishmentRaw);
+      if (
+        establishmentRaw.toUpperCase().includes("PAGAMENTO EFETUADO") &&
+        amountCents < 0
+      ) {
+        continue;
+      }
+
+      const installment = parseInstallment(establishmentRaw);
+      const cleanName = installment ? installment.cleanName : establishmentRaw;
+      const normalizedName = normalizeEstablishment(cleanName);
 
       let merchant = await prisma.merchant.findUnique({
         where: { normalizedName },
@@ -215,7 +222,7 @@ export async function importCsvContent(csvContent: string): Promise<{
       if (!merchant) {
         merchant = await prisma.merchant.create({
           data: {
-            name: establishmentRaw,
+            name: cleanName,
             normalizedName,
             categoryId: defaultCategoryId,
           },
@@ -223,18 +230,39 @@ export async function importCsvContent(csvContent: string): Promise<{
         });
       }
 
-      const rowFingerprint = fingerprint({ date, normalizedName, amountCents });
-      const invoiceMonth = await computeInvoiceMonth(date);
+      // "anuidade" parcelas use the purchase date directly, no installment offset
+      const isAnuidade = cleanName.toLowerCase().includes("anuidade");
+
+      // invoiceMonth: anchor on installment #1, then offset by (current - 1) months
+      const firstInstallmentInvoiceMonth = await computeInvoiceMonth(date);
+      const [fy, fm] = firstInstallmentInvoiceMonth.split("-").map(Number);
+      const offset = (installment && !isAnuidade) ? installment.current - 1 : 0;
+      const invoiceMonth = offset === 0
+        ? firstInstallmentInvoiceMonth
+        : toMonthKey(addMonths(new Date(fy, fm - 1, 1), offset));
+
+      const installmentCurrent = installment?.current ?? null;
+      const installmentTotal = installment?.total ?? null;
+
+      const rowFingerprint = fingerprint({
+        date,
+        normalizedName,
+        amountCents,
+        installmentCurrent: installmentCurrent ?? undefined,
+        installmentTotal: installmentTotal ?? undefined,
+      });
 
       const created = await prisma.expense.createMany({
         data: {
           expenseDate: date,
           invoiceMonth,
           amountCents,
-          establishmentRaw,
+          establishmentRaw: cleanName,
           merchantId: merchant.id,
           categoryId: merchant.categoryId,
           fingerprint: rowFingerprint,
+          installmentCurrent,
+          installmentTotal,
         },
         skipDuplicates: true,
       });
@@ -272,14 +300,6 @@ export async function updateMerchantNickname(merchantId: string, nickname: strin
   });
 }
 
-export async function setMonthlyBudget(month: string, amountCents: number): Promise<void> {
-  await prisma.monthlyBudget.upsert({
-    where: { month },
-    update: { amountCents },
-    create: { month, amountCents },
-  });
-}
-
 export async function setDefaultClosingDay(day: number): Promise<void> {
   await ensureDefaults();
   if (!supportsBillingConfig()) {
@@ -298,53 +318,21 @@ export async function setDefaultClosingDay(day: number): Promise<void> {
   });
 }
 
-export async function setClosingOverride(month: string, day: number): Promise<void> {
-  await ensureDefaults();
-  if (!supportsBillingConfig()) {
-    return;
-  }
-
-  const client = prisma as unknown as {
-    billingClosingOverride: {
-      upsert: (args: {
-        where: { month: string };
-        update: { closingDay: number };
-        create: { month: string; closingDay: number };
-      }) => Promise<unknown>;
-    };
-  };
-
-  await client.billingClosingOverride.upsert({
-    where: { month },
-    update: { closingDay: Math.max(1, Math.min(day, 31)) },
-    create: {
-      month,
-      closingDay: Math.max(1, Math.min(day, 31)),
-    },
-  });
-}
-
-export async function removeClosingOverride(month: string): Promise<void> {
-  if (!supportsBillingConfig()) {
-    return;
-  }
-
-  const client = prisma as unknown as {
-    billingClosingOverride: {
-      deleteMany: (args: { where: { month: string } }) => Promise<unknown>;
-    };
-  };
-
-  await client.billingClosingOverride.deleteMany({ where: { month } });
-}
 
 export async function recalculateAllInvoiceMonths(): Promise<number> {
   const expenses = await prisma.expense.findMany({
-    select: { id: true, expenseDate: true },
+    select: { id: true, expenseDate: true, installmentCurrent: true, establishmentRaw: true },
   });
 
   for (const expense of expenses) {
-    const invoiceMonth = await computeInvoiceMonth(expense.expenseDate);
+    const firstInvoiceMonth = await computeInvoiceMonth(expense.expenseDate);
+    const isAnuidade = expense.establishmentRaw.toLowerCase().includes("anuidade");
+    const offset = (expense.installmentCurrent != null && !isAnuidade) ? expense.installmentCurrent - 1 : 0;
+    const [y, m] = firstInvoiceMonth.split("-").map(Number);
+    const invoiceMonth = offset === 0
+      ? firstInvoiceMonth
+      : toMonthKey(addMonths(new Date(y, m - 1, 1), offset));
+
     await prisma.expense.update({
       where: { id: expense.id },
       data: { invoiceMonth },
@@ -355,8 +343,7 @@ export async function recalculateAllInvoiceMonths(): Promise<number> {
 }
 
 export async function dashboardForMonth(month: string) {
-  const [budget, expenses, categories] = await Promise.all([
-    prisma.monthlyBudget.findUnique({ where: { month } }),
+  const [expenses, categories] = await Promise.all([
     prisma.expense.findMany({
       where: { invoiceMonth: month },
       select: { amountCents: true, categoryId: true },
@@ -382,7 +369,6 @@ export async function dashboardForMonth(month: string) {
 
   return {
     month,
-    monthlyBudgetCents: budget?.amountCents ?? null,
     totalSpentCents,
     byCategory,
   };
@@ -390,27 +376,4 @@ export async function dashboardForMonth(month: string) {
 
 export function inferMonthFromDate(date: Date): string {
   return toMonthKey(date);
-}
-
-export async function listClosingOverrides(limit = 12): Promise<
-  Array<{ id: string; month: string; closingDay: number }>
-> {
-  if (!supportsBillingConfig()) {
-    return [];
-  }
-
-  const client = prisma as unknown as {
-    billingClosingOverride: {
-      findMany: (args: { orderBy: { month: "asc" | "desc" }; take: number }) => Promise<Array<{
-        id: string;
-        month: string;
-        closingDay: number;
-      }>>;
-    };
-  };
-
-  return client.billingClosingOverride.findMany({
-    orderBy: { month: "desc" },
-    take: limit,
-  });
 }

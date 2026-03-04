@@ -8,13 +8,6 @@ import { QueryToast } from "@/components/query-toast";
 import { ensureDefaults } from "@/lib/domain";
 import { prisma } from "@/lib/prisma";
 
-function contrastColor(hex: string): string {
-  const r = parseInt(hex.slice(1, 3), 16);
-  const g = parseInt(hex.slice(3, 5), 16);
-  const b = parseInt(hex.slice(5, 7), 16);
-  return (r * 299 + g * 587 + b * 114) / 1000 >= 128 ? "#1a1a1a" : "#ffffff";
-}
-
 const PAGE_SIZE = 25;
 
 type SearchParams = Promise<{ ok?: string; error?: string; page?: string }>;
@@ -65,7 +58,7 @@ export default async function MerchantsPage({ searchParams }: { searchParams: Se
             </tr>
           ) : (
             merchants.map((merchant) => {
-              const fg = contrastColor(merchant.category.color);
+              const color = merchant.category.color;
               return (
                 <tr key={merchant.id}>
                   <td>{merchant.name}</td>
@@ -73,9 +66,9 @@ export default async function MerchantsPage({ searchParams }: { searchParams: Se
                   <td>
                     <span
                       className="category-pill"
-                      style={{ backgroundColor: merchant.category.color, color: fg }}
+                      style={{ backgroundColor: `${color}22`, color, border: `1px solid ${color}55` }}
                     >
-                      <CategoryIcon icon={merchant.category.symbol} color={fg} size={14} />
+                      <CategoryIcon icon={merchant.category.symbol} color={color} size={14} />
                       {merchant.category.name}
                     </span>
                   </td>

@@ -849,6 +849,12 @@ button,
   border: 1px solid var(--teal-mid);
 }
 
+button.tag:hover {
+  background: var(--teal-mid);
+  color: var(--teal-dark);
+  box-shadow: none;
+}
+
 .warn {
   color: var(--danger);
   font-weight: 600;

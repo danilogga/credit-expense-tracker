@@ -1,17 +1,8 @@
-import {
-  removeClosingOverrideAction,
-  setClosingOverrideAction,
-  setDefaultClosingDayAction,
-} from "@/app/actions";
+import { setDefaultClosingDayAction } from "@/app/actions";
 import { MonthYearSelect } from "@/components/month-year-select";
 import { QueryToast } from "@/components/query-toast";
 import { resolveMonthKey, toMonthKey } from "@/lib/date";
-import {
-  computeInvoiceMonth,
-  ensureDefaults,
-  getBillingConfigForMonth,
-  listClosingOverrides,
-} from "@/lib/domain";
+import { computeInvoiceMonth, ensureDefaults, getBillingConfigForMonth } from "@/lib/domain";
 import { InvoiceMonthMemory } from "@/components/invoice-month-memory";
 
 type SearchParams = Promise<{
@@ -35,10 +26,7 @@ export default async function BillingPage({ searchParams }: { searchParams: Sear
 
   await ensureDefaults();
 
-  const [billingConfig, overrides] = await Promise.all([
-    getBillingConfigForMonth(month),
-    listClosingOverrides(12),
-  ]);
+  const billingConfig = await getBillingConfigForMonth(month);
 
   let simulatedInvoiceMonth: string | null = null;
   let simulatedEffectiveClosingDay: number | null = null;
@@ -60,7 +48,7 @@ export default async function BillingPage({ searchParams }: { searchParams: Sear
       <div className="page-header">
         <div>
           <h1>Configuração da Fatura</h1>
-          <p className="muted">Dia de virada e exceções mensais</p>
+          <p className="muted">Dia de virada padrão da fatura</p>
         </div>
         <form className="inline" method="get">
           <MonthYearSelect key={`billing-filter-${month}`} monthKey={month} idPrefix="billing-filter" />
@@ -68,75 +56,26 @@ export default async function BillingPage({ searchParams }: { searchParams: Sear
         </form>
       </div>
 
-      <section className="panel grid">
-        <div>
-          <h3>Dia de virada da fatura</h3>
-          <p className="muted">
-            Dia efetivo para <b>{month}</b>: <b>{billingConfig.effectiveClosingDay}</b>{" "}
-            {billingConfig.isOverride ? "(exceção mensal)" : "(padrão)"}
-          </p>
+      <section className="panel">
+        <h3>Dia de virada da fatura</h3>
+        <p className="muted">
+          Dia de fechamento padrão: <b>{billingConfig.defaultClosingDay}</b>
+        </p>
 
-          <form className="inline" action={setDefaultClosingDayAction}>
-            <input type="hidden" name="month" value={month} />
-            <label htmlFor="defaultClosingDay">Dia padrão:</label>
-            <input
-              id="defaultClosingDay"
-              name="defaultClosingDay"
-              type="number"
-              min={1}
-              max={31}
-              defaultValue={billingConfig.defaultClosingDay}
-              required
-            />
-            <button type="submit">Salvar padrão</button>
-          </form>
-
-          <form className="inline" action={setClosingOverrideAction}>
-            <span>Exceção do mês:</span>
-            <MonthYearSelect
-              key={`override-${month}`}
-              monthKey={month}
-              idPrefix="override"
-              monthName="overrideMonthNumber"
-              yearName="overrideYear"
-            />
-            <input name="closingDay" type="number" min={1} max={31} placeholder="Dia" required />
-            <button type="submit">Salvar exceção</button>
-          </form>
-        </div>
-
-        <div>
-          <h3>Exceções cadastradas</h3>
-          <table>
-            <thead>
-              <tr>
-                <th>Mês</th>
-                <th>Dia</th>
-                <th>Ação</th>
-              </tr>
-            </thead>
-            <tbody>
-              {overrides.length === 0 ? (
-                <tr>
-                  <td colSpan={3}>Sem exceções cadastradas.</td>
-                </tr>
-              ) : (
-                overrides.map((item) => (
-                  <tr key={item.id}>
-                    <td>{item.month}</td>
-                    <td>{item.closingDay}</td>
-                    <td>
-                      <form action={removeClosingOverrideAction}>
-                        <input type="hidden" name="month" value={item.month} />
-                        <button type="submit">Remover</button>
-                      </form>
-                    </td>
-                  </tr>
-                ))
-              )}
-            </tbody>
-          </table>
-        </div>
+        <form className="inline" action={setDefaultClosingDayAction}>
+          <input type="hidden" name="month" value={month} />
+          <label htmlFor="defaultClosingDay">Dia padrão:</label>
+          <input
+            id="defaultClosingDay"
+            name="defaultClosingDay"
+            type="number"
+            min={1}
+            max={31}
+            defaultValue={billingConfig.defaultClosingDay}
+            required
+          />
+          <button type="submit">Salvar</button>
+        </form>
       </section>
 
       <section className="panel">

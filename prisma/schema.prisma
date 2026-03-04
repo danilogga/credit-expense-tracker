@@ -33,15 +33,17 @@ model Merchant {
 }
 
 model Expense {
-  id               String    @id @default(cuid())
-  expenseDate      DateTime
-  invoiceMonth     String    @default("")
-  amountCents      Int
-  establishmentRaw String
-  merchantId       String
-  categoryId       String
-  fingerprint      String    @unique
-  importedAt       DateTime  @default(now())
+  id                  String    @id @default(cuid())
+  expenseDate         DateTime
+  invoiceMonth        String    @default("")
+  amountCents         Int
+  establishmentRaw    String
+  merchantId          String
+  categoryId          String
+  fingerprint         String    @unique
+  installmentCurrent  Int?
+  installmentTotal    Int?
+  importedAt          DateTime  @default(now())
 
   merchant Merchant @relation(fields: [merchantId], references: [id])
   category Category @relation(fields: [categoryId], references: [id])
@@ -52,25 +54,9 @@ model Expense {
   @@index([categoryId])
 }
 
-model MonthlyBudget {
-  id          String   @id @default(cuid())
-  month       String   @unique
-  amountCents Int
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-}
-
 model BillingSettings {
   id                Int      @id
   defaultClosingDay Int
   createdAt         DateTime @default(now())
   updatedAt         DateTime @updatedAt
-}
-
-model BillingClosingOverride {
-  id         String   @id @default(cuid())
-  month      String   @unique
-  closingDay Int
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
 }

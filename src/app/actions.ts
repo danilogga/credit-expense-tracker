@@ -4,14 +4,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { DEFAULT_CATEGORY_NAME, normalizeCategoryIcon } from "@/lib/constants";
 import { currentMonthKey, resolveMonthKey } from "@/lib/date";
-import {
-  importCsvContent,
-  recalculateAllInvoiceMonths,
-  removeClosingOverride,
-  setClosingOverride,
-  setDefaultClosingDay,
-  setMonthlyBudget,
-} from "@/lib/domain";
+import { importCsvContent, setDefaultClosingDay } from "@/lib/domain";
 import { parseMoneyToCents } from "@/lib/money";
 
 export async function importCsvAction(formData: FormData) {
@@ -124,28 +117,43 @@ export async function updateExpenseCategoryAction(formData: FormData) {
   const page = Math.max(1, Number(formData.get("page") ?? "1") || 1);
 
   const { prisma } = await import("@/lib/prisma");
+  const expense = await prisma.expense.findUnique({
+    where: { id: expenseId },
+    select: { merchantId: true },
+  });
+
+  if (expense) {
+    await prisma.$transaction([
+      prisma.expense.update({ where: { id: expenseId }, data: { categoryId } }),
+      prisma.merchant.update({ where: { id: expense.merchantId }, data: { categoryId } }),
+    ]);
+  }
+
+  revalidatePath("/");
+  revalidatePath("/expenses");
+  revalidatePath("/merchants");
+  redirect(`/?month=${month}&page=${page}&ok=Categoria+da+despesa+atualizada`);
+}
+
+export async function updateExpenseInvoiceMonthAction(formData: FormData) {
+  const expenseId = String(formData.get("expenseId") ?? "");
+  const invoiceMonth = String(formData.get("invoiceMonth") ?? "");
+  const month = String(formData.get("month") ?? currentMonthKey());
+  const page = Math.max(1, Number(formData.get("page") ?? "1") || 1);
+
+  if (!/^\d{4}-\d{2}$/.test(invoiceMonth)) {
+    redirect(`/?month=${month}&page=${page}&error=Mês+de+referência+inválido`);
+  }
+
+  const { prisma } = await import("@/lib/prisma");
   await prisma.expense.update({
     where: { id: expenseId },
-    data: { categoryId },
+    data: { invoiceMonth },
   });
 
   revalidatePath("/");
   revalidatePath("/expenses");
-  redirect(`/?month=${month}&page=${page}&ok=Categoria+da+despesa+atualizada`);
-}
-
-export async function setMonthlyBudgetAction(formData: FormData) {
-  const month = String(formData.get("month") ?? currentMonthKey());
-  const amount = String(formData.get("amount") ?? "");
-
-  if (!amount) {
-    redirect(`/?month=${month}&error=Orçamento+obrigatório`);
-  }
-
-  await setMonthlyBudget(month, parseMoneyToCents(amount));
-
-  revalidatePath("/");
-  redirect(`/?month=${month}&ok=Orçamento+atualizado`);
+  redirect(`/?month=${month}&page=${page}&ok=Mês+de+referência+atualizado`);
 }
 
 export async function setDefaultClosingDayAction(formData: FormData) {
@@ -157,54 +165,12 @@ export async function setDefaultClosingDayAction(formData: FormData) {
   }
 
   await setDefaultClosingDay(day);
-  const recalculated = await recalculateAllInvoiceMonths();
 
   revalidatePath("/");
   revalidatePath("/billing");
-  revalidatePath("/expenses");
-  redirect(`/billing?month=${month}&ok=Dia+padrão+atualizado+(${recalculated}+despesas+recalculadas)`);
+  redirect(`/billing?month=${month}&ok=Dia+padrão+atualizado`);
 }
 
-export async function setClosingOverrideAction(formData: FormData) {
-  const month = resolveMonthKey({
-    month: String(formData.get("month") ?? ""),
-    monthNumber: String(formData.get("overrideMonthNumber") ?? ""),
-    year: String(formData.get("overrideYear") ?? ""),
-  });
-  const day = Number(formData.get("closingDay"));
-
-  if (!month) {
-    redirect("/billing?error=Mês+da+exceção+obrigatório");
-  }
-
-  if (!Number.isInteger(day) || day < 1 || day > 31) {
-    redirect(`/billing?month=${month}&error=Dia+de+virada+inválido`);
-  }
-
-  await setClosingOverride(month, day);
-  const recalculated = await recalculateAllInvoiceMonths();
-
-  revalidatePath("/");
-  revalidatePath("/billing");
-  revalidatePath("/expenses");
-  redirect(`/billing?month=${month}&ok=Exceção+salva+(${recalculated}+despesas+recalculadas)`);
-}
-
-export async function removeClosingOverrideAction(formData: FormData) {
-  const month = String(formData.get("month") ?? "");
-
-  if (!month) {
-    redirect("/billing?error=Mês+da+exceção+obrigatório");
-  }
-
-  await removeClosingOverride(month);
-  const recalculated = await recalculateAllInvoiceMonths();
-
-  revalidatePath("/");
-  revalidatePath("/billing");
-  revalidatePath("/expenses");
-  redirect(`/billing?month=${month}&ok=Exceção+removida+(${recalculated}+despesas+recalculadas)`);
-}
 
 export async function deleteCategoryAction(formData: FormData) {
   const categoryId = String(formData.get("categoryId") ?? "");
