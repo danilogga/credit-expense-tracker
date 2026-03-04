@@ -8,7 +8,9 @@ import {
   UploadSimple,
   Storefront,
   Tag,
+  SignOut,
 } from "@phosphor-icons/react";
+import { logoutAction } from "@/app/login/actions";
 
 const links = [
   { href: "/", label: "Monitoramento", Icon: House },
@@ -36,6 +38,12 @@ export function NavLinks() {
           </Link>
         );
       })}
+      <form action={logoutAction} style={{ marginTop: "auto" }}>
+        <button type="submit" className="side-nav-link side-nav-logout" style={{ width: "100%", background: "none", border: "none", padding: 0, borderRadius: 0, fontWeight: 400 }}>
+          <SignOut size={18} />
+          <span>Sair</span>
+        </button>
+      </form>
     </nav>
   );
 }

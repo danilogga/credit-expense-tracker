@@ -170,6 +170,17 @@ h1, h2, h3, h4 {
   font-weight: 600;
 }
 
+.side-nav-logout {
+  color: var(--sidebar-text);
+  box-shadow: none;
+}
+
+.side-nav-logout:hover {
+  background: var(--sidebar-hover) !important;
+  color: var(--danger) !important;
+  box-shadow: none;
+}
+
 .side-nav-link-active::before {
   content: "";
   position: absolute;
@@ -1253,4 +1264,73 @@ button.tag:hover {
     font-size: 0.875rem;
     padding: 8px 10px;
   }
+}
+
+/* ══════════════════════════════════════════════════════
+   Login Page
+══════════════════════════════════════════════════════ */
+.login-container {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--bg);
+}
+
+.login-card {
+  background: var(--panel);
+  border-radius: 16px;
+  box-shadow: var(--shadow-md);
+  padding: 40px 36px;
+  width: 100%;
+  max-width: 360px;
+}
+
+.login-brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 28px;
+}
+
+.login-brand h1 {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--text);
+  margin: 0;
+}
+
+.login-logo {
+  font-size: 1.5rem;
+  line-height: 1;
+}
+
+.login-error {
+  background: var(--danger-soft);
+  border: 1px solid var(--danger-border);
+  color: var(--danger);
+  border-radius: var(--radius-sm);
+  padding: 8px 12px;
+  font-size: 0.875rem;
+  margin-bottom: 16px;
+}
+
+.login-form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.form-group label {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--muted);
 }
