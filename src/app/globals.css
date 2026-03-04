@@ -170,9 +170,17 @@ h1, h2, h3, h4 {
   font-weight: 600;
 }
 
+.side-nav-logout-form {
+  margin-top: auto;
+}
+
 .side-nav-logout {
   color: var(--sidebar-text);
   box-shadow: none;
+  width: 100%;
+  background: none;
+  border: none;
+  font-weight: 400;
 }
 
 .side-nav-logout:hover {
@@ -1202,44 +1210,186 @@ button.tag:hover {
 }
 
 /* ══════════════════════════════════════════════════════
-   Responsive
+   Responsive — Tablet (≤ 900px)
+══════════════════════════════════════════════════════ */
+@media (max-width: 900px) {
+  .app-shell {
+    grid-template-columns: 200px minmax(0, 1fr);
+  }
+}
+
+/* ══════════════════════════════════════════════════════
+   Responsive — Mobile (≤ 768px)
 ══════════════════════════════════════════════════════ */
 @media (max-width: 768px) {
+  /* ── App shell: stack vertically, nav on top ── */
   .app-shell {
     grid-template-columns: 1fr;
+    grid-template-rows: auto 1fr;
   }
 
+  /* ── Sidebar becomes a sticky top bar ── */
   .sidebar {
     height: auto;
-    position: static;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    flex-direction: row;
+    align-items: stretch;
+    border-right: none;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.18);
   }
 
+  /* ── Brand: compact icon-only left anchor ── */
+  .brand {
+    padding: 0 14px;
+    border-bottom: none;
+    border-right: 1px solid var(--sidebar-border);
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+  }
+
+  .brand strong,
+  .brand p {
+    display: none;
+  }
+
+  /* ── Nav: horizontal scrollable row ── */
   .side-nav {
     flex-direction: row;
-    flex-wrap: wrap;
-    padding: 8px;
-    gap: 4px;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    overflow-y: hidden;
+    padding: 8px 10px;
+    gap: 2px;
+    flex: 1;
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+    align-items: center;
+  }
+
+  .side-nav::-webkit-scrollbar {
+    display: none;
+  }
+
+  .side-nav-logout-form {
+    margin-top: 0;
+    margin-left: auto;
+    flex-shrink: 0;
   }
 
   .side-nav-link {
-    font-size: 0.8rem;
+    flex-shrink: 0;
+    font-size: 0.78rem;
     padding: 7px 10px;
+    gap: 6px;
+    white-space: nowrap;
   }
 
   .side-nav-link::before {
     display: none;
   }
 
+  /* ── Content ── */
   .content {
-    padding: 16px 16px 32px;
+    padding: 16px 14px 40px;
   }
 
+  /* ── Page header: stack on small screens ── */
+  .page-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+    margin-bottom: 16px;
+  }
+
+  .page-header h1 {
+    font-size: 1.25rem;
+  }
+
+  /* ── Panels ── */
+  .panel {
+    padding: 14px 16px;
+    border-radius: var(--radius);
+  }
+
+  /* ── Stats: 2-up on mobile ── */
+  .stats {
+    gap: 10px;
+  }
+
+  .stat {
+    min-width: 0;
+    flex: 1 1 calc(50% - 5px);
+    padding: 14px 16px;
+  }
+
+  .stat b {
+    font-size: 1.4rem;
+  }
+
+  /* ── Tables: horizontally scrollable ── */
+  table {
+    display: block;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    width: 100%;
+  }
+
+  thead,
+  tbody,
+  tfoot {
+    display: table;
+    width: 100%;
+  }
+
+  th,
+  td {
+    font-size: 0.8125rem;
+    padding: 8px 10px;
+    white-space: nowrap;
+  }
+
+  /* ── Category filter bar: horizontal scroll ── */
+  .category-filter-bar {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    padding-bottom: 4px;
+  }
+
+  .category-filter-bar::-webkit-scrollbar {
+    display: none;
+  }
+
+  /* ── Month/year select ── */
   .month-year-select {
     width: 100%;
-    display: grid;
-    grid-template-columns: auto 1fr auto 1fr;
+    flex-wrap: wrap;
+    gap: 6px;
   }
 
+  .month-year-select select {
+    flex: 1;
+    min-width: 90px;
+  }
+
+  /* ── Inline form groups ── */
+  form.inline {
+    flex-wrap: wrap;
+    width: 100%;
+  }
+
+  form.inline input,
+  form.inline select {
+    flex: 1;
+    min-width: 120px;
+  }
+
+  /* ── Category analytics ── */
   .category-analytics {
     grid-template-columns: 1fr;
   }
@@ -1259,10 +1409,74 @@ button.tag:hover {
     min-width: 44px;
   }
 
-  th,
-  td {
-    font-size: 0.875rem;
-    padding: 8px 10px;
+  /* ── Grid ── */
+  .grid {
+    grid-template-columns: 1fr;
+  }
+
+  /* ── Popup ── */
+  .popup-card {
+    padding: 18px;
+  }
+
+  /* ── Login card ── */
+  .login-card {
+    padding: 28px 20px;
+  }
+
+  /* ── Pagination ── */
+  .pagination {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+}
+
+/* ══════════════════════════════════════════════════════
+   Responsive — Small phones (≤ 480px)
+══════════════════════════════════════════════════════ */
+@media (max-width: 480px) {
+  /* ── Nav: icons only ── */
+  .side-nav-link span {
+    display: none;
+  }
+
+  .side-nav-link {
+    padding: 9px 11px;
+    border-radius: 8px;
+  }
+
+  .brand-mark {
+    width: 30px;
+    height: 30px;
+  }
+
+  /* ── Stats: full width each ── */
+  .stat {
+    flex: 1 1 100%;
+  }
+
+  /* ── Content: tighter padding ── */
+  .content {
+    padding: 12px 10px 36px;
+  }
+
+  /* ── Panel ── */
+  .panel {
+    padding: 12px 12px;
+    border-radius: var(--radius-sm);
+  }
+
+  /* ── Page header ── */
+  .page-header h1 {
+    font-size: 1.1rem;
+  }
+
+  /* ── Buttons: full width in forms ── */
+  .page-header .btn-primary,
+  .page-header .btn-secondary {
+    width: 100%;
+    justify-content: center;
   }
 }
 

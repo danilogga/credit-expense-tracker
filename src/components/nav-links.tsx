@@ -38,8 +38,8 @@ export function NavLinks() {
           </Link>
         );
       })}
-      <form action={logoutAction} style={{ marginTop: "auto" }}>
-        <button type="submit" className="side-nav-link side-nav-logout" style={{ width: "100%", background: "none", border: "none", padding: 0, borderRadius: 0, fontWeight: 400 }}>
+      <form action={logoutAction} className="side-nav-logout-form">
+        <button type="submit" className="side-nav-link side-nav-logout">
           <SignOut size={18} />
           <span>Sair</span>
         </button>
