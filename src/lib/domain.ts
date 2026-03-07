@@ -59,19 +59,21 @@ function clampClosingDay(day: number, month: string): number {
 }
 
 export async function ensureDefaults(): Promise<{ defaultCategoryId: string }> {
-  await prisma.$transaction(
-    DEFAULT_CATEGORIES.map((category) =>
-      prisma.category.upsert({
-        where: { name: category.name },
-        update: {},
-        create: {
-          name: category.name,
-          color: category.color,
-          symbol: category.symbol,
-        },
-      }),
-    ),
-  );
+  const count = await prisma.category.count();
+
+  if (count === 0) {
+    await prisma.category.createMany({
+      data: DEFAULT_CATEGORIES.map(({ name, color, symbol }) => ({ name, color, symbol })),
+      skipDuplicates: true,
+    });
+  } else {
+    const defaultCat = DEFAULT_CATEGORIES.find((c) => c.name === DEFAULT_CATEGORY_NAME)!;
+    await prisma.category.upsert({
+      where: { name: DEFAULT_CATEGORY_NAME },
+      update: {},
+      create: { name: defaultCat.name, color: defaultCat.color, symbol: defaultCat.symbol },
+    });
+  }
 
   if (supportsBillingConfig()) {
     const client = prisma as unknown as {

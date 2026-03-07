@@ -50,7 +50,7 @@ No test framework is configured.
 
 **Merchant reclassification**: Changing a merchant's category updates all existing expenses for that merchant in a single transaction (`setMerchantCategory` in domain.ts).
 
-**Category icons** are stored as `lucide:icon-name` strings and rendered with `@iconify/react`. `normalizeCategoryIcon()` validates against the actual lucide icon set.
+**Category icons** are stored as `phosphor:icon-name` strings and rendered with `@phosphor-icons/react`. `normalizeCategoryIcon()` in `src/lib/constants.ts` validates the prefix; available icons are keyed in `PHOSPHOR_ICON_MAP` in `src/lib/icons.ts`. In server components, import from `@phosphor-icons/react/dist/ssr`; in client components, import from `@phosphor-icons/react`.
 
 **`ensureDefaults()`** is called on dashboard load to seed default categories and the singleton `BillingSettings` row (id=1, defaultClosingDay=31). Always call it before reads that depend on default data existing.
 
