@@ -1,7 +1,8 @@
 import { Lock, LockOpen } from "@phosphor-icons/react/dist/ssr";
 import { QueryToast } from "@/components/query-toast";
-import { closeInvoiceAction, openInvoiceAction } from "@/app/actions";
-import { getClosedMonths } from "@/lib/domain";
+import { closeInvoiceAction, openInvoiceAction, setDefaultClosingDayAction } from "@/app/actions";
+import { getClosedMonths, getBillingConfigForMonth } from "@/lib/domain";
+import { currentMonthKey } from "@/lib/date";
 import { formatCents } from "@/lib/money";
 import { prisma } from "@/lib/prisma";
 
@@ -10,13 +11,14 @@ type SearchParams = Promise<{ ok?: string; error?: string }>;
 export default async function InvoicesPage({ searchParams }: { searchParams: SearchParams }) {
   const params = await searchParams;
 
-  const [monthTotals, closedMonths] = await Promise.all([
+  const [monthTotals, closedMonths, billingConfig] = await Promise.all([
     prisma.expense.groupBy({
       by: ["invoiceMonth"],
       _sum: { amountCents: true },
       orderBy: { invoiceMonth: "desc" },
     }),
     getClosedMonths(),
+    getBillingConfigForMonth(currentMonthKey()),
   ]);
 
   const invoices = monthTotals.map((row) => ({
@@ -39,6 +41,27 @@ export default async function InvoicesPage({ searchParams }: { searchParams: Sea
           <p className="muted">Gerencie o status de abertura e fechamento das faturas</p>
         </div>
       </div>
+
+      <section className="panel">
+        <h3>Dia de virada da fatura</h3>
+        <p className="muted">
+          Dia de fechamento padrão: <b>{billingConfig.defaultClosingDay}</b>
+        </p>
+        <form className="inline" action={setDefaultClosingDayAction}>
+          <input type="hidden" name="returnTo" value="invoices" />
+          <label htmlFor="defaultClosingDay">Dia padrão:</label>
+          <input
+            id="defaultClosingDay"
+            name="defaultClosingDay"
+            type="number"
+            min={1}
+            max={31}
+            defaultValue={billingConfig.defaultClosingDay}
+            required
+          />
+          <button type="submit">Salvar</button>
+        </form>
+      </section>
 
       <div className="panel">
         <table>
