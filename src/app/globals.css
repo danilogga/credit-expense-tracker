@@ -233,6 +233,63 @@ h1, h2, h3, h4 {
   font-size: 0.84rem;
 }
 
+.invoice-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
+  border-radius: 999px;
+  font-size: 0.775rem;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+}
+
+.invoice-status-closed {
+  background: #e8f5f0;
+  color: #2a7a56;
+  border: 1px solid #b6dece;
+}
+
+.invoice-status-open {
+  background: #eef6ff;
+  color: #1d5fa8;
+  border: 1px solid #b3d4f5;
+}
+
+.invoice-close-btn {
+  padding: 6px 14px;
+  border-radius: 999px;
+  font-size: 0.775rem;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  background: transparent;
+  color: var(--danger, #c0392b);
+  border: 1px solid currentColor;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+}
+
+.invoice-close-btn:hover {
+  background: #fdecea;
+}
+
+.invoice-open-btn {
+  padding: 6px 14px;
+  border-radius: 999px;
+  font-size: 0.775rem;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  background: transparent;
+  color: #2a7a56;
+  border: 1px solid #b6dece;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.invoice-open-btn:hover {
+  background: #e8f5f0;
+}
+
 /* ══════════════════════════════════════════════════════
    Panel / Card
 ══════════════════════════════════════════════════════ */

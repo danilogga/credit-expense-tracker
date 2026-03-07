@@ -60,3 +60,8 @@ model BillingSettings {
   createdAt         DateTime @default(now())
   updatedAt         DateTime @updatedAt
 }
+
+model Invoice {
+  month    String   @id
+  closedAt DateTime @default(now())
+}

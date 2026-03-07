@@ -172,12 +172,43 @@ export async function computeInvoiceMonth(expenseDate: Date): Promise<string> {
   }
 }
 
+export async function closeInvoice(month: string): Promise<void> {
+  await prisma.invoice.create({ data: { month } });
+}
+
+export async function openInvoice(month: string): Promise<void> {
+  await prisma.invoice.delete({ where: { month } });
+}
+
+export async function isInvoiceClosed(month: string): Promise<boolean> {
+  const record = await prisma.invoice.findUnique({ where: { month } });
+  return record !== null;
+}
+
+export async function getClosedMonths(): Promise<Set<string>> {
+  const records = await prisma.invoice.findMany({ select: { month: true } });
+  return new Set(records.map((r) => r.month));
+}
+
+function nextOpenMonth(month: string, closedMonths: Set<string>): string {
+  let m = month;
+  let guard = 0;
+  while (closedMonths.has(m) && guard++ < 24) {
+    const [y, mo] = m.split("-").map(Number);
+    m = toMonthKey(addMonths(new Date(y, mo - 1, 1), 1));
+  }
+  return m;
+}
+
 export async function importCsvContent(csvContent: string): Promise<{
   imported: number;
   duplicates: number;
   invalidRows: number;
 }> {
-  const { defaultCategoryId } = await ensureDefaults();
+  const [{ defaultCategoryId }, closedMonths] = await Promise.all([
+    ensureDefaults(),
+    getClosedMonths(),
+  ]);
 
   const rows = parseCsv(csvContent, {
     columns: (headers) => headers.map(canonicalHeader),
@@ -239,9 +270,10 @@ export async function importCsvContent(csvContent: string): Promise<{
       const firstInstallmentInvoiceMonth = await computeInvoiceMonth(date);
       const [fy, fm] = firstInstallmentInvoiceMonth.split("-").map(Number);
       const offset = (installment && !isAnuidade) ? installment.current - 1 : 0;
-      const invoiceMonth = offset === 0
+      const rawInvoiceMonth = offset === 0
         ? firstInstallmentInvoiceMonth
         : toMonthKey(addMonths(new Date(fy, fm - 1, 1), offset));
+      const invoiceMonth = nextOpenMonth(rawInvoiceMonth, closedMonths);
 
       const installmentCurrent = installment?.current ?? null;
       const installmentTotal = installment?.total ?? null;

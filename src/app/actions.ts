@@ -4,7 +4,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { DEFAULT_CATEGORY_NAME, normalizeCategoryIcon } from "@/lib/constants";
 import { currentMonthKey, resolveMonthKey } from "@/lib/date";
-import { importCsvContent, setDefaultClosingDay } from "@/lib/domain";
+import { importCsvContent, setDefaultClosingDay, closeInvoice, openInvoice } from "@/lib/domain";
 import { parseMoneyToCents } from "@/lib/money";
 
 export async function importCsvAction(formData: FormData) {
@@ -154,6 +154,36 @@ export async function updateExpenseInvoiceMonthAction(formData: FormData) {
   revalidatePath("/");
   revalidatePath("/expenses");
   redirect(`/?month=${month}&page=${page}&ok=Mês+de+referência+atualizado`);
+}
+
+export async function closeInvoiceAction(formData: FormData) {
+  const month = String(formData.get("month") ?? "");
+  const fromInvoices = formData.get("returnTo") === "invoices";
+
+  if (!/^\d{4}-\d{2}$/.test(month)) {
+    redirect(fromInvoices ? "/invoices?error=Mês+inválido" : "/?error=Mês+inválido");
+  }
+
+  await closeInvoice(month);
+
+  revalidatePath("/");
+  revalidatePath("/invoices");
+  redirect(fromInvoices ? "/invoices?ok=Fatura+fechada+com+sucesso" : `/?month=${month}&ok=Fatura+fechada+com+sucesso`);
+}
+
+export async function openInvoiceAction(formData: FormData) {
+  const month = String(formData.get("month") ?? "");
+  const fromInvoices = formData.get("returnTo") === "invoices";
+
+  if (!/^\d{4}-\d{2}$/.test(month)) {
+    redirect(fromInvoices ? "/invoices?error=Mês+inválido" : "/?error=Mês+inválido");
+  }
+
+  await openInvoice(month);
+
+  revalidatePath("/");
+  revalidatePath("/invoices");
+  redirect(fromInvoices ? "/invoices?ok=Fatura+aberta+com+sucesso" : `/?month=${month}&ok=Fatura+aberta+com+sucesso`);
 }
 
 export async function setDefaultClosingDayAction(formData: FormData) {

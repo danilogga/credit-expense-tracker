@@ -8,12 +8,14 @@ import {
   UploadSimple,
   Storefront,
   Tag,
+  Receipt,
   SignOut,
 } from "@phosphor-icons/react";
 import { logoutAction } from "@/app/login/actions";
 
 const links = [
   { href: "/", label: "Monitoramento", Icon: House },
+  { href: "/invoices", label: "Faturas", Icon: Receipt },
   { href: "/billing", label: "Config. Fatura", Icon: CreditCard },
   { href: "/import", label: "Importar CSV", Icon: UploadSimple },
   { href: "/merchants", label: "Estabelecimentos", Icon: Storefront },

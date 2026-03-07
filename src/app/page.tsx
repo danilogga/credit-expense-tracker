@@ -1,3 +1,4 @@
+import { Lock, LockOpen } from "@phosphor-icons/react/dist/ssr";
 import { resolveMonthKey } from "@/lib/date";
 import { MonthYearSelect } from "@/components/month-year-select";
 import { PaginationControl } from "@/components/pagination-control";
@@ -8,7 +9,7 @@ import { ExpenseCategoryCell } from "@/components/expense-category-cell";
 import { AutoSubmitForm } from "@/components/auto-submit-form";
 import { ExpenseInvoiceMonthCell } from "@/components/expense-invoice-month-cell";
 import { QueryToast } from "@/components/query-toast";
-import { dashboardForMonth, ensureDefaults } from "@/lib/domain";
+import { dashboardForMonth, ensureDefaults, isInvoiceClosed } from "@/lib/domain";
 import { formatCents } from "@/lib/money";
 import { prisma } from "@/lib/prisma";
 
@@ -49,7 +50,7 @@ export default async function DashboardPage({ searchParams }: { searchParams: Se
     ...(categoryId ? { categoryId } : {}),
   };
 
-  const [dashboard, totalExpenses, expenses, categories] = await Promise.all([
+  const [dashboard, totalExpenses, expenses, categories, invoiceClosed] = await Promise.all([
     dashboardForMonth(month),
     prisma.expense.count({ where: expenseWhere }),
     prisma.expense.findMany({
@@ -63,6 +64,7 @@ export default async function DashboardPage({ searchParams }: { searchParams: Se
       orderBy: { name: "asc" },
       select: { id: true, name: true, color: true, symbol: true },
     }),
+    isInvoiceClosed(month),
   ]);
 
   const spent = dashboard.totalSpentCents;
@@ -77,9 +79,20 @@ export default async function DashboardPage({ searchParams }: { searchParams: Se
           <h1>Monitoramento</h1>
           <p className="muted">Despesas por mês de fatura</p>
         </div>
-        <AutoSubmitForm className="inline" method="get">
-          <MonthYearSelect key={`dashboard-filter-${month}`} monthKey={month} idPrefix="dashboard-filter" />
-        </AutoSubmitForm>
+        <div className="inline">
+          {invoiceClosed ? (
+            <span className="invoice-status invoice-status-closed">
+              <Lock size={13} weight="fill" />Fatura fechada
+            </span>
+          ) : (
+            <span className="invoice-status invoice-status-open">
+              <LockOpen size={13} weight="fill" />Fatura aberta
+            </span>
+          )}
+          <AutoSubmitForm className="inline" method="get">
+            <MonthYearSelect key={`dashboard-filter-${month}`} monthKey={month} idPrefix="dashboard-filter" />
+          </AutoSubmitForm>
+        </div>
       </div>
 
       <section className="panel stats">
