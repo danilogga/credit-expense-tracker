@@ -10,6 +10,7 @@ import { MerchantNicknameCell } from "@/components/merchant-nickname-cell";
 import { PageSizeSelect } from "@/components/page-size-select";
 import { resolvePageSize } from "@/lib/pagination-server";
 import { AutoSubmitForm } from "@/components/auto-submit-form";
+import { SearchInput } from "@/components/search-input";
 import { ExpenseInvoiceMonthCell } from "@/components/expense-invoice-month-cell";
 import { QueryToast } from "@/components/query-toast";
 import { dashboardForMonth, ensureDefaults, isInvoiceClosed } from "@/lib/domain";
@@ -30,6 +31,7 @@ type SearchParams = Promise<{
   page?: string;
   pageSize?: string;
   categoryId?: string;
+  q?: string;
   ok?: string;
   error?: string;
 }>;
@@ -44,6 +46,7 @@ export default async function DashboardPage({ searchParams }: { searchParams: Se
   const hasExplicitMonth = Boolean(params.month || params.filterMonth || params.filterYear);
   const page = Math.max(1, Number(params.page ?? "1") || 1);
   const categoryId = params.categoryId ?? null;
+  const q = params.q?.trim() ?? "";
   const pageSize = await resolvePageSize(params.pageSize);
   const skip = (page - 1) * pageSize;
 
@@ -52,6 +55,14 @@ export default async function DashboardPage({ searchParams }: { searchParams: Se
   const expenseWhere = {
     invoiceMonth: month,
     ...(categoryId ? { categoryId } : {}),
+    ...(q ? {
+      merchant: {
+        OR: [
+          { name: { contains: q, mode: "insensitive" as const } },
+          { nickname: { contains: q, mode: "insensitive" as const } },
+        ],
+      },
+    } : {}),
   };
 
   const [dashboard, totalExpenses, expenses, categories, invoiceClosed] = await Promise.all([
@@ -112,7 +123,10 @@ export default async function DashboardPage({ searchParams }: { searchParams: Se
       </section>
 
       <section className="panel">
-        <h3>Despesas da fatura</h3>
+        <div className="page-header" style={{ marginBottom: 14 }}>
+          <h3 style={{ margin: 0 }}>Despesas da fatura</h3>
+          <SearchInput defaultValue={q} placeholder="Buscar por estabelecimento…" />
+        </div>
 
         <div className="category-filter-bar">
           <a
