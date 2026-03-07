@@ -55,7 +55,7 @@ export default async function DashboardPage({ searchParams }: { searchParams: Se
     prisma.expense.findMany({
       where: expenseWhere,
       include: { merchant: true, category: true },
-      orderBy: [{ expenseDate: "desc" }, { importedAt: "desc" }],
+      orderBy: [{ expenseDate: "desc" }, { merchant: { name: "asc" } }],
       skip,
       take: pageSize,
     }),
@@ -153,7 +153,15 @@ export default async function DashboardPage({ searchParams }: { searchParams: Se
                     />
                   </td>
                   <td>{expense.expenseDate.toLocaleDateString("pt-BR")}</td>
-                  <td>{expense.merchant.nickname || expense.merchant.name}</td>
+                  <td>
+                    {expense.merchant.nickname ? (
+                      <span data-tooltip={expense.merchant.name} data-tooltip-pos="top">
+                        {expense.merchant.nickname}
+                      </span>
+                    ) : (
+                      expense.merchant.name
+                    )}
+                  </td>
                   <td>
                     <ExpenseCategoryCell
                       expenseId={expense.id}

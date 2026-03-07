@@ -33,6 +33,7 @@ export function CategorySpendChart({ data }: Props) {
   const totalSpentCents = rows.reduce((acc, row) => acc + row.spentCents, 0);
   const totalPercent = totalLimitCents > 0 ? Math.round((totalSpentCents / totalLimitCents) * 100) : 0;
   const donutPercent = Math.min(100, Math.max(0, totalPercent));
+  const donutColor = totalPercent >= 90 ? "#e05555" : "#4db885";
 
   return (
     <div className="category-analytics">
@@ -56,7 +57,11 @@ export function CategorySpendChart({ data }: Props) {
               </div>
 
               <div className="category-line-value">
-                {row.limitCents > 0 ? formatCents(row.spentCents) : "Sem limite"}
+                {formatCents(row.spentCents)}
+              </div>
+
+              <div className="category-line-limit muted">
+                {row.limitCents > 0 ? formatCents(row.limitCents) : "Sem limite"}
               </div>
             </div>
           ))}
@@ -67,7 +72,7 @@ export function CategorySpendChart({ data }: Props) {
         <h4>Grau de compromisso</h4>
         <div
           className="category-donut"
-          style={{ background: `conic-gradient(#d86f33 ${donutPercent}%, #dfe6ef 0)` }}
+          style={{ background: `conic-gradient(${donutColor} ${donutPercent}%, #dfe6ef 0)` }}
           role="img"
           aria-label={`Comprometimento total de ${totalPercent}%`}
         >

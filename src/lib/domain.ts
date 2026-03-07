@@ -367,7 +367,7 @@ export async function dashboardForMonth(month: string) {
         spentCents,
       };
     })
-    .filter((item) => item.spentCents > 0 || item.limitCents !== null);
+
 
   return {
     month,

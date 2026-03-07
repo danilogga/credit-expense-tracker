@@ -679,6 +679,7 @@ button,
   border-color: var(--text);
 }
 
+
 .category-filter-pill {
   text-decoration: none;
 }
@@ -1160,6 +1161,12 @@ button.tag:hover {
   color: var(--text);
 }
 
+.category-line-limit {
+  min-width: 100px;
+  text-align: right;
+  font-size: 0.84rem;
+}
+
 .category-donut-card {
   display: grid;
   justify-items: center;
@@ -1399,7 +1406,8 @@ button.tag:hover {
   }
 
   .category-line-name,
-  .category-line-value {
+  .category-line-value,
+  .category-line-limit {
     min-width: auto;
     width: 100%;
     text-align: left;
