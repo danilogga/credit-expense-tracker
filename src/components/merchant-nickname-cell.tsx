@@ -72,8 +72,8 @@ export function MerchantNicknameCell({ merchantId, name, nickname }: Props) {
     <span
       className={`nickname-inline-text${isPending ? " nickname-inline-pending" : ""}`}
       onClick={startEditing}
-      title={current ? name : "Clique para adicionar apelido"}
-      {...(current ? { "data-tooltip": name, "data-tooltip-pos": "top" } : {})}
+      data-tooltip={current ? name : "Clique para adicionar apelido"}
+      data-tooltip-pos="top"
     >
       {current || name}
     </span>
