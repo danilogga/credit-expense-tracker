@@ -7,6 +7,8 @@ import { CategorySpendChart } from "@/components/category-spend-chart";
 import { CategoryIcon } from "@/components/category-icon";
 import { ExpenseCategoryCell } from "@/components/expense-category-cell";
 import { MerchantNicknameCell } from "@/components/merchant-nickname-cell";
+import { PageSizeSelect } from "@/components/page-size-select";
+import { resolvePageSize } from "@/lib/pagination-server";
 import { AutoSubmitForm } from "@/components/auto-submit-form";
 import { ExpenseInvoiceMonthCell } from "@/components/expense-invoice-month-cell";
 import { QueryToast } from "@/components/query-toast";
@@ -26,6 +28,7 @@ type SearchParams = Promise<{
   filterMonth?: string;
   filterYear?: string;
   page?: string;
+  pageSize?: string;
   categoryId?: string;
   ok?: string;
   error?: string;
@@ -41,7 +44,7 @@ export default async function DashboardPage({ searchParams }: { searchParams: Se
   const hasExplicitMonth = Boolean(params.month || params.filterMonth || params.filterYear);
   const page = Math.max(1, Number(params.page ?? "1") || 1);
   const categoryId = params.categoryId ?? null;
-  const pageSize = 15;
+  const pageSize = await resolvePageSize(params.pageSize);
   const skip = (page - 1) * pageSize;
 
   await ensureDefaults();
@@ -202,7 +205,10 @@ export default async function DashboardPage({ searchParams }: { searchParams: Se
           <span className="muted">
             Página {page} de {totalPages} ({totalExpenses} lançamentos)
           </span>
-          <PaginationControl currentPage={page} totalPages={totalPages} />
+          <div className="inline">
+            <PageSizeSelect value={pageSize} />
+            <PaginationControl currentPage={page} totalPages={totalPages} />
+          </div>
         </div>
       </section>
     </div>

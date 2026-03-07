@@ -4,19 +4,20 @@ import { deleteCategoryAction } from "@/app/actions";
 import { CategoryIcon } from "@/components/category-icon";
 import { DeleteButton } from "@/components/delete-button";
 import { PaginationControl } from "@/components/pagination-control";
+import { PageSizeSelect } from "@/components/page-size-select";
+import { resolvePageSize } from "@/lib/pagination-server";
 import { QueryToast } from "@/components/query-toast";
 import { ensureDefaults } from "@/lib/domain";
 import { formatCents } from "@/lib/money";
 import { prisma } from "@/lib/prisma";
 
-const PAGE_SIZE = 20;
-
-type SearchParams = Promise<{ ok?: string; error?: string; page?: string }>;
+type SearchParams = Promise<{ ok?: string; error?: string; page?: string; pageSize?: string }>;
 
 export default async function CategoriesPage({ searchParams }: { searchParams: SearchParams }) {
   const params = await searchParams;
   const page = Math.max(1, Number(params.page ?? "1") || 1);
-  const skip = (page - 1) * PAGE_SIZE;
+  const pageSize = await resolvePageSize(params.pageSize);
+  const skip = (page - 1) * pageSize;
 
   await ensureDefaults();
 
@@ -25,11 +26,11 @@ export default async function CategoriesPage({ searchParams }: { searchParams: S
     prisma.category.findMany({
       orderBy: { name: "asc" },
       skip,
-      take: PAGE_SIZE,
+      take: pageSize,
     }),
   ]);
 
-  const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
+  const totalPages = Math.max(1, Math.ceil(total / pageSize));
 
   return (
     <div>
@@ -95,7 +96,10 @@ export default async function CategoriesPage({ searchParams }: { searchParams: S
         <span className="muted">
           Página {page} de {totalPages} ({total} categorias)
         </span>
-        <PaginationControl currentPage={page} totalPages={totalPages} />
+        <div className="inline">
+          <PageSizeSelect value={pageSize} />
+          <PaginationControl currentPage={page} totalPages={totalPages} />
+        </div>
       </div>
       </div>
     </div>

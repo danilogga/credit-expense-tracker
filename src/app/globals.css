@@ -233,6 +233,10 @@ h1, h2, h3, h4 {
   font-size: 0.84rem;
 }
 
+.search-input {
+  width: 260px;
+}
+
 .invoice-status {
   display: inline-flex;
   align-items: center;

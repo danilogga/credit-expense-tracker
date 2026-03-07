@@ -5,31 +5,43 @@ import { CategoryIcon } from "@/components/category-icon";
 import { DeleteButton } from "@/components/delete-button";
 import { PaginationControl } from "@/components/pagination-control";
 import { QueryToast } from "@/components/query-toast";
+import { MerchantSearchInput } from "@/components/merchant-search-input";
+import { PageSizeSelect } from "@/components/page-size-select";
+import { resolvePageSize } from "@/lib/pagination-server";
 import { ensureDefaults } from "@/lib/domain";
 import { prisma } from "@/lib/prisma";
 
-const PAGE_SIZE = 25;
 
-type SearchParams = Promise<{ ok?: string; error?: string; page?: string }>;
+type SearchParams = Promise<{ ok?: string; error?: string; page?: string; q?: string; pageSize?: string }>;
 
 export default async function MerchantsPage({ searchParams }: { searchParams: SearchParams }) {
   const params = await searchParams;
   const page = Math.max(1, Number(params.page ?? "1") || 1);
-  const skip = (page - 1) * PAGE_SIZE;
+  const q = params.q?.trim() ?? "";
+  const pageSize = await resolvePageSize(params.pageSize);
+  const skip = (page - 1) * pageSize;
 
   await ensureDefaults();
 
+  const where = q
+    ? { OR: [
+        { name: { contains: q, mode: "insensitive" as const } },
+        { nickname: { contains: q, mode: "insensitive" as const } },
+      ]}
+    : undefined;
+
   const [total, merchants] = await Promise.all([
-    prisma.merchant.count(),
+    prisma.merchant.count({ where }),
     prisma.merchant.findMany({
+      where,
       include: { category: true },
       orderBy: { name: "asc" },
       skip,
-      take: PAGE_SIZE,
+      take: pageSize,
     }),
   ]);
 
-  const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
+  const totalPages = Math.max(1, Math.ceil(total / pageSize));
 
   return (
     <div>
@@ -39,6 +51,7 @@ export default async function MerchantsPage({ searchParams }: { searchParams: Se
           <h1>Estabelecimentos</h1>
           <p className="muted">Alterar a categoria atualiza todas as despesas existentes do estabelecimento</p>
         </div>
+        <MerchantSearchInput defaultValue={q} />
       </div>
 
       <div className="panel">
@@ -94,9 +107,12 @@ export default async function MerchantsPage({ searchParams }: { searchParams: Se
 
       <div className="pagination">
         <span className="muted">
-          Página {page} de {totalPages} ({total} estabelecimentos)
+          Página {page} de {totalPages} ({total} {q ? "resultado(s)" : "estabelecimentos"})
         </span>
-        <PaginationControl currentPage={page} totalPages={totalPages} />
+        <div className="inline">
+          <PageSizeSelect value={pageSize} />
+          <PaginationControl currentPage={page} totalPages={totalPages} />
+        </div>
       </div>
       </div>
     </div>
