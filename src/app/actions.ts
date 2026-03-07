@@ -197,18 +197,17 @@ export async function openInvoiceAction(formData: FormData) {
 }
 
 export async function setDefaultClosingDayAction(formData: FormData) {
-  const month = String(formData.get("month") ?? currentMonthKey());
   const day = Number(formData.get("defaultClosingDay"));
 
   if (!Number.isInteger(day) || day < 1 || day > 31) {
-    redirect(`/billing?month=${month}&error=Dia+de+virada+inválido`);
+    redirect(`/billing?error=Dia+de+virada+inválido`);
   }
 
   await setDefaultClosingDay(day);
 
   revalidatePath("/");
   revalidatePath("/billing");
-  redirect(`/billing?month=${month}&ok=Dia+padrão+atualizado`);
+  redirect(`/billing?ok=Dia+padrão+atualizado`);
 }
 
 
