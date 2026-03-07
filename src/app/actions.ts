@@ -85,6 +85,16 @@ export async function updateCategoryAction(formData: FormData) {
   redirect("/categories?ok=Categoria+atualizada");
 }
 
+export async function updateMerchantNicknameAction(merchantId: string, nickname: string): Promise<void> {
+  const { prisma } = await import("@/lib/prisma");
+  await prisma.merchant.update({
+    where: { id: merchantId },
+    data: { nickname: nickname.trim() || null },
+  });
+  revalidatePath("/");
+  revalidatePath("/merchants");
+}
+
 export async function updateMerchantAction(formData: FormData) {
   const merchantId = String(formData.get("merchantId") ?? "");
   const nickname = String(formData.get("nickname") ?? "").trim();

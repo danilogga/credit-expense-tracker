@@ -6,6 +6,7 @@ import { InvoiceMonthMemory } from "@/components/invoice-month-memory";
 import { CategorySpendChart } from "@/components/category-spend-chart";
 import { CategoryIcon } from "@/components/category-icon";
 import { ExpenseCategoryCell } from "@/components/expense-category-cell";
+import { MerchantNicknameCell } from "@/components/merchant-nickname-cell";
 import { AutoSubmitForm } from "@/components/auto-submit-form";
 import { ExpenseInvoiceMonthCell } from "@/components/expense-invoice-month-cell";
 import { QueryToast } from "@/components/query-toast";
@@ -167,13 +168,11 @@ export default async function DashboardPage({ searchParams }: { searchParams: Se
                   </td>
                   <td>{expense.expenseDate.toLocaleDateString("pt-BR")}</td>
                   <td>
-                    {expense.merchant.nickname ? (
-                      <span data-tooltip={expense.merchant.name} data-tooltip-pos="top">
-                        {expense.merchant.nickname}
-                      </span>
-                    ) : (
-                      expense.merchant.name
-                    )}
+                    <MerchantNicknameCell
+                      merchantId={expense.merchant.id}
+                      name={expense.merchant.name}
+                      nickname={expense.merchant.nickname}
+                    />
                   </td>
                   <td>
                     <ExpenseCategoryCell

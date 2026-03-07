@@ -290,6 +290,33 @@ h1, h2, h3, h4 {
   background: #e8f5f0;
 }
 
+.nickname-inline-text {
+  cursor: pointer;
+  border-bottom: 1px dashed transparent;
+  transition: border-color 0.15s;
+}
+
+.nickname-inline-text:hover {
+  border-bottom-color: var(--muted);
+}
+
+.nickname-inline-pending {
+  opacity: 0.5;
+}
+
+.nickname-inline-input {
+  width: 100%;
+  min-width: 120px;
+  padding: 2px 6px;
+  border: 1px solid var(--teal);
+  border-radius: 4px;
+  font-size: inherit;
+  font-family: inherit;
+  background: #fff;
+  outline: none;
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--teal) 20%, transparent);
+}
+
 /* ══════════════════════════════════════════════════════
    Panel / Card
 ══════════════════════════════════════════════════════ */
