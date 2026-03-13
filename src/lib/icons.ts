@@ -2,30 +2,39 @@ import type { Icon as PhosphorIcon } from "@phosphor-icons/react";
 import {
   // Geral
   Circle, Star, Heart, Bookmark, Flag, Gear, Clock, Calendar, Bell, Scissors,
-  Sun, Moon, Drop, Leaf, Flower, Fire, Lightning,
+  Sun, Moon, Drop, Leaf, Flower, Fire, Lightning, Confetti, Balloon,
   // Alimentação & Bebidas
   ForkKnife, Coffee, Wine, Hamburger, Pizza, Cookie, Cake, Bread, BowlFood,
-  CookingPot, Carrot, Orange,
+  CookingPot, Carrot, Orange, BeerStein, Champagne, ChefHat,
   // Transporte
   Car, Bus, Train, Airplane, Motorcycle, Bicycle, GasPump, Boat,
   // Moradia
   House, Buildings, Bed, Couch, Lightbulb, Wrench, PaintBucket, Bathtub,
-  // Saúde
+  Broom, Dresser,
+  // Saúde & Fitness
   Heartbeat, FirstAid, Pill, Hospital, Stethoscope, Tooth, Bandaids,
+  Barbell, PersonSimpleRun, PersonSimpleSwim, PersonSimpleBike, SoccerBall,
+  Basketball, TennisBall,
+  // Beleza & Cuidado Pessoal
+  Sparkle, HandSoap, HairDryer,
   // Lazer
   GameController, MusicNotes, FilmSlate, Ticket, Guitar, Television,
   // Educação
   BookOpen, GraduationCap, Pencil, Student, ChalkboardTeacher,
+  // Trabalho
+  Briefcase, Handshake, BuildingOffice, Newspaper,
   // Finanças
   Wallet, CreditCard, Coins, Bank, Receipt, PiggyBank, CurrencyDollar, HandCoins,
   // Compras
-  ShoppingCart, ShoppingBag, Gift, Tag, Storefront,
+  ShoppingCart, ShoppingBag, Gift, Tag, Storefront, Handbag, TShirt, Dress, Sneaker,
   // Tecnologia
   Laptop, DeviceMobile, Headphones, Camera, Watch, WifiHigh,
   // Viagem
-  Suitcase, MapPin, Compass, Tent,
+  Suitcase, MapPin, Compass, Tent, Umbrella,
+  // Família
+  Baby, BabyCarriage,
   // Pets & Natureza
-  PawPrint, Dog, Tree,
+  PawPrint, Dog, Tree, Fish,
 } from "@phosphor-icons/react";
 
 export type PhosphorIconComponent = PhosphorIcon;
@@ -49,6 +58,8 @@ export const PHOSPHOR_ICON_MAP: Record<string, PhosphorIcon> = {
   flower: Flower,
   fire: Fire,
   lightning: Lightning,
+  confetti: Confetti,
+  balloon: Balloon,
   // Alimentação & Bebidas
   "fork-knife": ForkKnife,
   coffee: Coffee,
@@ -62,6 +73,9 @@ export const PHOSPHOR_ICON_MAP: Record<string, PhosphorIcon> = {
   "cooking-pot": CookingPot,
   carrot: Carrot,
   orange: Orange,
+  "beer-stein": BeerStein,
+  champagne: Champagne,
+  "chef-hat": ChefHat,
   // Transporte
   car: Car,
   bus: Bus,
@@ -80,7 +94,9 @@ export const PHOSPHOR_ICON_MAP: Record<string, PhosphorIcon> = {
   wrench: Wrench,
   "paint-bucket": PaintBucket,
   bathtub: Bathtub,
-  // Saúde
+  broom: Broom,
+  dresser: Dresser,
+  // Saúde & Fitness
   heartbeat: Heartbeat,
   "first-aid": FirstAid,
   pill: Pill,
@@ -88,6 +104,17 @@ export const PHOSPHOR_ICON_MAP: Record<string, PhosphorIcon> = {
   stethoscope: Stethoscope,
   tooth: Tooth,
   bandaids: Bandaids,
+  barbell: Barbell,
+  "person-simple-run": PersonSimpleRun,
+  "person-simple-swim": PersonSimpleSwim,
+  "person-simple-bike": PersonSimpleBike,
+  "soccer-ball": SoccerBall,
+  basketball: Basketball,
+  "tennis-ball": TennisBall,
+  // Beleza & Cuidado Pessoal
+  sparkle: Sparkle,
+  "hand-soap": HandSoap,
+  hairdryer: HairDryer,
   // Lazer
   "game-controller": GameController,
   "music-notes": MusicNotes,
@@ -101,6 +128,11 @@ export const PHOSPHOR_ICON_MAP: Record<string, PhosphorIcon> = {
   pencil: Pencil,
   student: Student,
   "chalkboard-teacher": ChalkboardTeacher,
+  // Trabalho
+  briefcase: Briefcase,
+  handshake: Handshake,
+  "building-office": BuildingOffice,
+  newspaper: Newspaper,
   // Finanças
   wallet: Wallet,
   "credit-card": CreditCard,
@@ -116,6 +148,10 @@ export const PHOSPHOR_ICON_MAP: Record<string, PhosphorIcon> = {
   gift: Gift,
   tag: Tag,
   storefront: Storefront,
+  handbag: Handbag,
+  "t-shirt": TShirt,
+  dress: Dress,
+  sneaker: Sneaker,
   // Tecnologia
   laptop: Laptop,
   "device-mobile": DeviceMobile,
@@ -128,20 +164,25 @@ export const PHOSPHOR_ICON_MAP: Record<string, PhosphorIcon> = {
   "map-pin": MapPin,
   compass: Compass,
   tent: Tent,
+  umbrella: Umbrella,
+  // Família
+  baby: Baby,
+  "baby-carriage": BabyCarriage,
   // Pets & Natureza
   "paw-print": PawPrint,
   dog: Dog,
   tree: Tree,
+  fish: Fish,
 };
 
 export const ICON_GROUPS: { label: string; icons: string[] }[] = [
   {
     label: "Geral",
-    icons: ["circle", "star", "heart", "bookmark", "flag", "gear", "clock", "calendar", "bell", "scissors", "sun", "moon", "drop", "leaf", "flower", "fire", "lightning"],
+    icons: ["circle", "star", "heart", "bookmark", "flag", "gear", "clock", "calendar", "bell", "scissors", "sun", "moon", "drop", "leaf", "flower", "fire", "lightning", "confetti", "balloon"],
   },
   {
     label: "Alimentação & Bebidas",
-    icons: ["fork-knife", "coffee", "wine", "hamburger", "pizza", "cookie", "cake", "bread", "bowl-food", "cooking-pot", "carrot", "orange"],
+    icons: ["fork-knife", "coffee", "wine", "hamburger", "pizza", "cookie", "cake", "bread", "bowl-food", "cooking-pot", "carrot", "orange", "beer-stein", "champagne", "chef-hat"],
   },
   {
     label: "Transporte",
@@ -149,11 +190,15 @@ export const ICON_GROUPS: { label: string; icons: string[] }[] = [
   },
   {
     label: "Moradia",
-    icons: ["house", "buildings", "bed", "couch", "lightbulb", "wrench", "paint-bucket", "bathtub"],
+    icons: ["house", "buildings", "bed", "couch", "lightbulb", "wrench", "paint-bucket", "bathtub", "broom", "dresser"],
   },
   {
-    label: "Saúde",
-    icons: ["heartbeat", "first-aid", "pill", "hospital", "stethoscope", "tooth", "bandaids"],
+    label: "Saúde & Fitness",
+    icons: ["heartbeat", "first-aid", "pill", "hospital", "stethoscope", "tooth", "bandaids", "barbell", "person-simple-run", "person-simple-swim", "person-simple-bike", "soccer-ball", "basketball", "tennis-ball"],
+  },
+  {
+    label: "Beleza & Cuidado Pessoal",
+    icons: ["sparkle", "hand-soap", "hairdryer", "scissors"],
   },
   {
     label: "Lazer",
@@ -164,12 +209,16 @@ export const ICON_GROUPS: { label: string; icons: string[] }[] = [
     icons: ["book-open", "graduation-cap", "pencil", "student", "chalkboard-teacher"],
   },
   {
+    label: "Trabalho",
+    icons: ["briefcase", "handshake", "building-office", "newspaper"],
+  },
+  {
     label: "Finanças",
     icons: ["wallet", "credit-card", "coins", "bank", "receipt", "piggy-bank", "currency-dollar", "hand-coins"],
   },
   {
-    label: "Compras",
-    icons: ["shopping-cart", "shopping-bag", "gift", "tag", "storefront"],
+    label: "Compras & Moda",
+    icons: ["shopping-cart", "shopping-bag", "gift", "tag", "storefront", "handbag", "t-shirt", "dress", "sneaker"],
   },
   {
     label: "Tecnologia",
@@ -177,11 +226,15 @@ export const ICON_GROUPS: { label: string; icons: string[] }[] = [
   },
   {
     label: "Viagem",
-    icons: ["suitcase", "map-pin", "compass", "tent"],
+    icons: ["suitcase", "map-pin", "compass", "tent", "umbrella"],
+  },
+  {
+    label: "Família",
+    icons: ["baby", "baby-carriage", "heart", "balloon"],
   },
   {
     label: "Pets & Natureza",
-    icons: ["paw-print", "dog", "tree"],
+    icons: ["paw-print", "dog", "fish", "tree"],
   },
 ];
 
