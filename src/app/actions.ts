@@ -166,6 +166,19 @@ export async function updateExpenseInvoiceMonthAction(formData: FormData) {
   redirect(`/?month=${month}&page=${page}&ok=Mês+de+referência+atualizado`);
 }
 
+export async function toggleExpenseIgnoredAction(formData: FormData) {
+  const id = String(formData.get("id") ?? "").trim();
+
+  const { prisma } = await import("@/lib/prisma");
+  const expense = await prisma.expense.findUnique({ where: { id }, select: { ignored: true } });
+  if (!expense) return;
+
+  await prisma.expense.update({ where: { id }, data: { ignored: !expense.ignored } });
+
+  revalidatePath("/");
+  revalidatePath("/invoices");
+}
+
 export async function closeInvoiceAction(formData: FormData) {
   const month = String(formData.get("month") ?? "");
   const fromInvoices = formData.get("returnTo") === "invoices";

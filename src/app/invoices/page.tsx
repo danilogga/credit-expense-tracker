@@ -14,6 +14,7 @@ export default async function InvoicesPage({ searchParams }: { searchParams: Sea
   const [monthTotals, closedMonths, billingConfig] = await Promise.all([
     prisma.expense.groupBy({
       by: ["invoiceMonth"],
+      where: { ignored: false },
       _sum: { amountCents: true },
       orderBy: { invoiceMonth: "desc" },
     }),

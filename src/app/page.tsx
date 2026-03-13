@@ -12,10 +12,12 @@ import { resolvePageSize } from "@/lib/pagination-server";
 import { AutoSubmitForm } from "@/components/auto-submit-form";
 import { SearchInput } from "@/components/search-input";
 import { ExpenseInvoiceMonthCell } from "@/components/expense-invoice-month-cell";
+import { ExpenseIgnoreToggle } from "@/components/expense-ignore-toggle";
 import { QueryToast } from "@/components/query-toast";
 import { dashboardForMonth, ensureDefaults, isInvoiceClosed } from "@/lib/domain";
 import { formatCents } from "@/lib/money";
 import { prisma } from "@/lib/prisma";
+import { cookies } from "next/headers";
 
 function contrastColor(hex: string): string {
   const r = parseInt(hex.slice(1, 3), 16);
@@ -38,12 +40,14 @@ type SearchParams = Promise<{
 
 export default async function DashboardPage({ searchParams }: { searchParams: SearchParams }) {
   const params = await searchParams;
+  const hasExplicitMonth = Boolean(params.month || params.filterMonth || params.filterYear);
+  const cookieStore = await cookies();
+  const savedMonth = !hasExplicitMonth ? cookieStore.get("creditexp:selectedInvoiceMonth")?.value : undefined;
   const month = resolveMonthKey({
-    month: params.month,
+    month: params.month ?? savedMonth,
     monthNumber: params.filterMonth,
     year: params.filterYear,
   });
-  const hasExplicitMonth = Boolean(params.month || params.filterMonth || params.filterYear);
   const page = Math.max(1, Number(params.page ?? "1") || 1);
   const categoryId = params.categoryId ?? null;
   const q = params.q?.trim() ?? "";
@@ -165,16 +169,17 @@ export default async function DashboardPage({ searchParams }: { searchParams: Se
               <th>Categoria</th>
               <th>Parcela</th>
               <th className="col-right">Valor</th>
+              <th style={{ width: "44px" }}></th>
             </tr>
           </thead>
           <tbody>
             {expenses.length === 0 ? (
               <tr>
-                <td colSpan={6}>Sem despesas para esta fatura.</td>
+                <td colSpan={7}>Sem despesas para esta fatura.</td>
               </tr>
             ) : (
               expenses.map((expense) => (
-                <tr key={expense.id}>
+                <tr key={expense.id} className={expense.ignored ? "expense-ignored" : undefined}>
                   <td>
                     <ExpenseInvoiceMonthCell
                       expenseId={expense.id}
@@ -209,6 +214,12 @@ export default async function DashboardPage({ searchParams }: { searchParams: Se
                       : "—"}
                   </td>
                   <td className="col-right">{formatCents(expense.amountCents)}</td>
+                  <td>
+                    <ExpenseIgnoreToggle
+                      expenseId={expense.id}
+                      ignored={expense.ignored}
+                    />
+                  </td>
                 </tr>
               ))
             )}

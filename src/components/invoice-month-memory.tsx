@@ -1,9 +1,8 @@
 "use client";
 
 import { useEffect } from "react";
-import { usePathname, useRouter, useSearchParams } from "next/navigation";
 
-const STORAGE_KEY = "creditexp:selectedInvoiceMonth";
+const COOKIE_KEY = "creditexp:selectedInvoiceMonth";
 
 type Props = {
   currentMonth: string;
@@ -11,29 +10,10 @@ type Props = {
 };
 
 export function InvoiceMonthMemory({ currentMonth, hasExplicitMonth }: Props) {
-  const router = useRouter();
-  const pathname = usePathname();
-  const searchParams = useSearchParams();
-
   useEffect(() => {
-    if (typeof window === "undefined") {
-      return;
-    }
-
-    const saved = window.localStorage.getItem(STORAGE_KEY);
-    if (!hasExplicitMonth && saved && saved !== currentMonth) {
-      const params = new URLSearchParams(searchParams.toString());
-      params.set("month", saved);
-      params.delete("filterMonth");
-      params.delete("filterYear");
-      params.delete("page");
-
-      router.replace(`${pathname}?${params.toString()}`);
-      return;
-    }
-
-    window.localStorage.setItem(STORAGE_KEY, currentMonth);
-  }, [currentMonth, hasExplicitMonth, pathname, router, searchParams]);
+    if (!hasExplicitMonth) return;
+    document.cookie = `${COOKIE_KEY}=${currentMonth};path=/;max-age=${60 * 60 * 24 * 365}`;
+  }, [currentMonth, hasExplicitMonth]);
 
   return null;
 }

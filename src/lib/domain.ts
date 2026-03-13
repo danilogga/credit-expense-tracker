@@ -379,7 +379,7 @@ export async function recalculateAllInvoiceMonths(): Promise<number> {
 export async function dashboardForMonth(month: string) {
   const [expenses, categories] = await Promise.all([
     prisma.expense.findMany({
-      where: { invoiceMonth: month },
+      where: { invoiceMonth: month, ignored: false },
       select: { amountCents: true, categoryId: true },
     }),
     prisma.category.findMany({ orderBy: { name: "asc" } }),

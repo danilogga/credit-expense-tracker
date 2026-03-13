@@ -260,6 +260,7 @@ h1, h2, h3, h4 {
   border: 1px solid #b3d4f5;
 }
 
+
 .invoice-close-btn {
   padding: 6px 14px;
   border-radius: 999px;
@@ -461,6 +462,49 @@ tbody tr:hover td {
 
 .col-right .inline {
   justify-content: flex-end;
+}
+
+/* ── Expense ignore toggle ── */
+.expense-ignore-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
+  border: none;
+  cursor: pointer;
+  background: transparent;
+  color: var(--muted);
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.expense-ignore-btn:not(.expense-ignore-btn--ignored):hover {
+  background: var(--surface);
+  color: var(--muted);
+}
+
+.expense-ignore-btn--ignored {
+  color: #d97706;
+}
+
+.expense-ignore-btn--ignored:hover {
+  background: rgba(245, 158, 11, 0.1);
+  color: #b45309;
+}
+
+/* ── Ignored expense row ── */
+tr.expense-ignored td:first-child {
+  box-shadow: inset 3px 0 0 rgba(245, 158, 11, 0.55);
+}
+
+tr.expense-ignored td {
+  background: rgba(245, 158, 11, 0.035);
+  color: var(--muted);
+}
+
+tr.expense-ignored:hover td {
+  background: rgba(245, 158, 11, 0.065);
 }
 
 /* ══════════════════════════════════════════════════════

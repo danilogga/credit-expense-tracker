@@ -43,6 +43,7 @@ model Expense {
   fingerprint         String    @unique
   installmentCurrent  Int?
   installmentTotal    Int?
+  ignored             Boolean   @default(false)
   importedAt          DateTime  @default(now())
 
   merchant Merchant @relation(fields: [merchantId], references: [id])
