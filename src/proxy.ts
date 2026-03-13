@@ -3,10 +3,11 @@ import { NextRequest, NextResponse } from "next/server";
 export function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
-  // Ignore static assets
+  // Ignore static assets and API routes (API routes use their own Bearer token auth)
   if (
     pathname.startsWith("/_next/") ||
-    pathname.startsWith("/favicon.ico")
+    pathname.startsWith("/favicon.ico") ||
+    pathname.startsWith("/api/")
   ) {
     return NextResponse.next();
   }
