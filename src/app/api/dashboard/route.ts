@@ -92,6 +92,7 @@ export async function GET(request: NextRequest) {
       amountCents: e.amountCents,
       installmentCurrent: e.installmentCurrent,
       installmentTotal: e.installmentTotal,
+      ignored: e.ignored,
       merchant: {
         id: e.merchant.id,
         name: e.merchant.name,
