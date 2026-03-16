@@ -32,6 +32,7 @@ export async function createCategoryAction(formData: FormData) {
   const color = String(formData.get("color") ?? "#37A8A4").trim();
   const symbol = normalizeCategoryIcon(String(formData.get("symbol") ?? ""));
   const limitInput = String(formData.get("limit") ?? "").trim();
+  const favorite = formData.get("favorite") === "on";
 
   if (!name) {
     redirect("/categories?error=Nome+da+categoria+é+obrigatório");
@@ -44,6 +45,7 @@ export async function createCategoryAction(formData: FormData) {
       color: /^#[0-9a-fA-F]{6}$/.test(color) ? color : "#37A8A4",
       symbol,
       limitCents: limitInput ? parseMoneyToCents(limitInput) : null,
+      favorite,
     },
   });
 
@@ -60,6 +62,7 @@ export async function updateCategoryAction(formData: FormData) {
   const color = String(formData.get("color") ?? "#37A8A4").trim();
   const symbol = normalizeCategoryIcon(String(formData.get("symbol") ?? ""));
   const limitInput = String(formData.get("limit") ?? "").trim();
+  const favorite = formData.get("favorite") === "on";
 
   if (!name) {
     redirect(`/categories/${categoryId}?error=Nome+da+categoria+é+obrigatório`);
@@ -74,6 +77,7 @@ export async function updateCategoryAction(formData: FormData) {
       color: /^#[0-9a-fA-F]{6}$/.test(color) ? color : "#37A8A4",
       symbol,
       limitCents: limitInput ? parseMoneyToCents(limitInput) : null,
+      favorite,
     },
   });
 

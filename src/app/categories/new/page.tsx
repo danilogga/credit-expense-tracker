@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { FloppyDisk, X } from "@phosphor-icons/react/dist/ssr";
+import { FloppyDisk, X, Star } from "@phosphor-icons/react/dist/ssr";
 import { createCategoryAction } from "@/app/actions";
 import { CategoryColorPicker } from "@/components/category-color-picker";
 import { CategoryIconPicker } from "@/components/category-icon-picker";
@@ -33,6 +33,12 @@ export default async function NewCategoryPage({ searchParams }: { searchParams: 
 
           <label htmlFor="limit">Limite mensal (opcional)</label>
           <input id="limit" name="limit" placeholder="Ex: 800,00" />
+
+          <label className="checkbox-label">
+            <input type="checkbox" name="favorite" id="favorite" />
+            <Star size={15} weight="fill" style={{ color: "#f5a623" }} />
+            Marcar como favorita
+          </label>
 
           <div className="inline">
             <button type="submit">

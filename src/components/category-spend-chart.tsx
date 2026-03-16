@@ -20,12 +20,16 @@ export function CategorySpendChart({ data }: Props) {
     const ratio = limitCents > 0 ? item.spentCents / limitCents : 0;
     const percent = limitCents > 0 ? Math.round(ratio * 100) : 0;
 
+    const isWarning = limitCents > 0 && percent >= 70 && percent < 90;
+    const isOverLimit = limitCents > 0 && percent >= 90;
+
     return {
       ...item,
       limitCents,
       percent,
       progressWidth: `${Math.min(100, Math.max(0, percent))}%`,
-      isOverLimit: limitCents > 0 && item.spentCents > limitCents,
+      isWarning,
+      isOverLimit,
     };
   });
 
@@ -33,7 +37,7 @@ export function CategorySpendChart({ data }: Props) {
   const totalSpentCents = rows.reduce((acc, row) => acc + row.spentCents, 0);
   const totalPercent = totalLimitCents > 0 ? Math.round((totalSpentCents / totalLimitCents) * 100) : 0;
   const donutPercent = Math.min(100, Math.max(0, totalPercent));
-  const donutColor = totalPercent >= 90 ? "#e05555" : "#4db885";
+  const donutColor = totalPercent >= 90 ? "#e05555" : totalPercent >= 70 ? "#f5a623" : "#4db885";
 
   return (
     <div className="category-analytics">
@@ -47,11 +51,11 @@ export function CategorySpendChart({ data }: Props) {
               <div className="category-line-progress">
                 <div className="category-line-track" aria-hidden="true">
                   <div
-                    className={`category-line-fill ${row.isOverLimit ? "category-line-over" : ""}`}
+                    className={`category-line-fill ${row.isOverLimit ? "category-line-over" : row.isWarning ? "category-line-warn" : ""}`}
                     style={{ width: row.progressWidth }}
                   />
                 </div>
-                <span className={row.isOverLimit ? "warn category-line-percent" : "muted category-line-percent"}>
+                <span className={row.isOverLimit ? "warn category-line-percent" : row.isWarning ? "category-line-percent category-line-percent-warn" : "muted category-line-percent"}>
                   {row.limitCents > 0 ? `${row.percent}%` : "-"}
                 </span>
               </div>

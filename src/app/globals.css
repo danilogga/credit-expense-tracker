@@ -825,6 +825,16 @@ button,
   max-width: 460px;
 }
 
+.checkbox-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.9rem;
+  cursor: pointer;
+  user-select: none;
+  padding: 4px 0;
+}
+
 /* ══════════════════════════════════════════════════════
    Category Chip / Icon Buttons (expense inline chooser)
 ══════════════════════════════════════════════════════ */
@@ -1274,8 +1284,16 @@ button.tag:hover {
   transition: width 0.4s ease;
 }
 
+.category-line-warn {
+  background: #f5a623;
+}
+
 .category-line-over {
   background: var(--danger);
+}
+
+.category-line-percent-warn {
+  color: #f5a623;
 }
 
 .category-line-percent {

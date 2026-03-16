@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Plus, PencilSimple } from "@phosphor-icons/react/dist/ssr";
+import { Plus, PencilSimple, Star } from "@phosphor-icons/react/dist/ssr";
 import { deleteCategoryAction } from "@/app/actions";
 import { CategoryIcon } from "@/components/category-icon";
 import { DeleteButton } from "@/components/delete-button";
@@ -63,6 +63,7 @@ export default async function CategoriesPage({ searchParams }: { searchParams: S
             <th>Categoria</th>
             <th>Identificação</th>
             <th className="col-right">Limite mensal</th>
+            <th className="col-right">Favorita</th>
             <th className="col-right">Ação</th>
           </tr>
         </thead>
@@ -84,6 +85,11 @@ export default async function CategoriesPage({ searchParams }: { searchParams: S
                 </span>
               </td>
               <td className="col-right">{category.limitCents !== null ? formatCents(category.limitCents) : "Sem limite"}</td>
+              <td className="col-right">
+                {category.favorite
+                  ? <Star size={16} weight="fill" style={{ color: "#f5a623" }} />
+                  : <span className="muted">—</span>}
+              </td>
               <td className="col-right">
                 <div className="inline">
                   <Link href={`/categories/${category.id}`} className="btn-secondary btn-icon" data-tooltip="Editar">

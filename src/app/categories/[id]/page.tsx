@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { FloppyDisk, X, ArrowLeft } from "@phosphor-icons/react/dist/ssr";
+import { FloppyDisk, X, ArrowLeft, Star } from "@phosphor-icons/react/dist/ssr";
 import { updateCategoryAction } from "@/app/actions";
 import { CategoryColorPicker } from "@/components/category-color-picker";
 import { CategoryIconPicker } from "@/components/category-icon-picker";
@@ -78,6 +78,12 @@ export default async function EditCategoryPage({
               category.limitCents !== null ? String((category.limitCents / 100).toFixed(2)).replace(".", ",") : ""
             }
           />
+
+          <label className="checkbox-label">
+            <input type="checkbox" name="favorite" id="favorite" defaultChecked={category.favorite} />
+            <Star size={15} weight="fill" style={{ color: "#f5a623" }} />
+            Marcar como favorita
+          </label>
 
           <div className="inline">
             <button type="submit">

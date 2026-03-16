@@ -12,6 +12,7 @@ model Category {
   color      String     @default("#37A8A4")
   symbol     String     @default("•")
   limitCents Int?
+  favorite   Boolean    @default(false)
   merchants  Merchant[]
   expenses   Expense[]
   createdAt  DateTime   @default(now())
