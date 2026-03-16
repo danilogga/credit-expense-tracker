@@ -57,7 +57,7 @@ export async function GET(request: NextRequest) {
     }),
     prisma.category.findMany({
       orderBy: { name: "asc" },
-      select: { id: true, name: true, color: true, symbol: true },
+      select: { id: true, name: true, color: true, symbol: true, favorite: true },
     }),
     isInvoiceClosed(month),
   ]);
@@ -71,6 +71,7 @@ export async function GET(request: NextRequest) {
     name: cat.name,
     color: cat.color,
     symbol: cat.symbol,
+    favorite: cat.favorite,
     limitCents: spendMap.get(cat.id)?.limitCents ?? null,
     spentCents: spendMap.get(cat.id)?.spentCents ?? 0,
   }));
