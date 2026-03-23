@@ -84,6 +84,7 @@ export async function GET(request: NextRequest) {
     month,
     invoiceClosed,
     totalSpentCents: dashboard.totalSpentCents,
+    totalIgnoredCents: dashboard.totalIgnoredCents,
     categories,
     pagination: { page, pageSize, totalExpenses, totalPages },
     expenses: expenses.map((e) => ({

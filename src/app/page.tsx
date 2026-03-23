@@ -87,6 +87,7 @@ export default async function DashboardPage({ searchParams }: { searchParams: Se
   ]);
 
   const spent = dashboard.totalSpentCents;
+  const ignored = dashboard.totalIgnoredCents;
   const totalPages = Math.max(1, Math.ceil(totalExpenses / pageSize));
 
   return (
@@ -119,6 +120,12 @@ export default async function DashboardPage({ searchParams }: { searchParams: Se
           <span className="muted">Total gasto (fatura)</span>
           <b>{formatCents(spent)}</b>
         </div>
+        {ignored > 0 && (
+          <div className="stat">
+            <span className="muted">Total ignorado</span>
+            <b className="muted">{formatCents(ignored)}</b>
+          </div>
+        )}
       </section>
 
       <section className="panel">

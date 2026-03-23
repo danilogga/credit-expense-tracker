@@ -377,15 +377,20 @@ export async function recalculateAllInvoiceMonths(): Promise<number> {
 }
 
 export async function dashboardForMonth(month: string) {
-  const [expenses, categories] = await Promise.all([
+  const [expenses, ignoredExpenses, categories] = await Promise.all([
     prisma.expense.findMany({
       where: { invoiceMonth: month, ignored: false },
       select: { amountCents: true, categoryId: true },
+    }),
+    prisma.expense.aggregate({
+      where: { invoiceMonth: month, ignored: true },
+      _sum: { amountCents: true },
     }),
     prisma.category.findMany({ orderBy: { name: "asc" } }),
   ]);
 
   const totalSpentCents = expenses.reduce((acc, item) => acc + item.amountCents, 0);
+  const totalIgnoredCents = ignoredExpenses._sum.amountCents ?? 0;
   const byCategory = categories
     .map((category) => {
       const spentCents = expenses
@@ -404,6 +409,7 @@ export async function dashboardForMonth(month: string) {
   return {
     month,
     totalSpentCents,
+    totalIgnoredCents,
     byCategory,
   };
 }
