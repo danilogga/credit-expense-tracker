@@ -15,7 +15,11 @@ npx prisma migrate dev    # Run migrations and regenerate client
 npx prisma generate       # Regenerate Prisma client after schema changes
 ```
 
-Environment requires `DATABASE_URL` (e.g. `postgresql://postgres:postgres@localhost:5432/credit_expense_tracker`).
+Environment variables required:
+- `DATABASE_URL` — e.g. `postgresql://postgres:postgres@localhost:5432/credit_expense_tracker`
+- `AUTH_USERNAME`, `AUTH_PASSWORD`, `AUTH_SECRET` — web session auth
+- `API_TOKEN` — REST API bearer token
+
 For production deploys, run `npx prisma migrate deploy` (not `migrate dev`) before `next build`.
 
 No test framework is configured.
@@ -48,7 +52,7 @@ No test framework is configured.
 
 **Month keys** are `YYYY-MM` strings used throughout (invoice month, budget month, override month).
 
-**Invoice month logic** (in `computeInvoiceMonth`): a purchase made on or before the closing day of its month → billed in month+1; after the closing day → month+2. The closing day can be overridden per-month via `BillingClosingOverride`.
+**Invoice month logic** (in `computeInvoiceMonth`): a purchase made on or before `defaultClosingDay` of its month → invoice month = purchase month; after the closing day → invoice month = purchase month + 1. Closing day is set globally via `BillingSettings` (singleton row id=1).
 
 **Deduplication**: Expenses have a unique `fingerprint` = `date|normalizedMerchantName|amountCents`. `importCsvContent` uses `createMany({ skipDuplicates: true })`.
 
@@ -63,6 +67,8 @@ No test framework is configured.
 ## REST API
 
 `GET /api/dashboard` — read-only endpoint consumed by the iOS app. Auth: `Authorization: Bearer ${API_TOKEN}`. Query params: `month` (YYYY-MM), `page`, `pageSize`, `categoryId`, `q`. Returns `{ month, invoiceClosed, totalSpentCents, categories[], pagination, expenses[] }`. Expenses include `ignored: boolean`; `totalSpentCents` already excludes ignored expenses.
+
+Interactive docs (Swagger UI) at `/api/docs`; OpenAPI spec at `/api/openapi.json`.
 
 ## Styling
 

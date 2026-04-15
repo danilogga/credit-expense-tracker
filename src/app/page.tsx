@@ -210,8 +210,6 @@ export default async function DashboardPage({ searchParams }: { searchParams: Se
                       currentCategoryName={expense.category.name}
                       currentCategorySymbol={expense.category.symbol}
                       currentCategoryColor={expense.category.color}
-                      month={month}
-                      page={page}
                       categories={categories}
                     />
                   </td>

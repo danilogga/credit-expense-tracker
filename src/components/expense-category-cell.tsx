@@ -1,12 +1,14 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useState, useTransition } from "react";
 import { updateExpenseCategoryAction } from "@/app/actions";
 import { CategoryIcon } from "@/components/category-icon";
 
 type CategoryOption = {
   id: string;
   name: string;
+  color: string;
+  symbol: string;
 };
 
 type Props = {
@@ -15,8 +17,6 @@ type Props = {
   currentCategoryName: string;
   currentCategorySymbol: string;
   currentCategoryColor: string;
-  month: string;
-  page: number;
   categories: CategoryOption[];
 };
 
@@ -26,12 +26,16 @@ export function ExpenseCategoryCell({
   currentCategoryName,
   currentCategorySymbol,
   currentCategoryColor,
-  month,
-  page,
   categories,
 }: Props) {
   const [editing, setEditing] = useState(false);
-  const formRef = useRef<HTMLFormElement>(null);
+  const [optimistic, setOptimistic] = useState({
+    id: currentCategoryId,
+    name: currentCategoryName,
+    symbol: currentCategorySymbol,
+    color: currentCategoryColor,
+  });
+  const [, startTransition] = useTransition();
 
   if (!editing) {
     return (
@@ -39,38 +43,50 @@ export function ExpenseCategoryCell({
         type="button"
         className="category-pill"
         style={{
-          backgroundColor: `${currentCategoryColor}22`,
-          color: currentCategoryColor,
-          border: `1px solid ${currentCategoryColor}55`,
+          backgroundColor: `${optimistic.color}22`,
+          color: optimistic.color,
+          border: `1px solid ${optimistic.color}55`,
           cursor: "pointer",
         }}
         onClick={() => setEditing(true)}
         title="Clique para alterar categoria"
       >
-        <CategoryIcon icon={currentCategorySymbol} color={currentCategoryColor} size={14} />
-        {currentCategoryName}
+        <CategoryIcon icon={optimistic.symbol} color={optimistic.color} size={14} />
+        {optimistic.name}
       </button>
     );
   }
 
+  function handleChange(e: React.ChangeEvent<HTMLSelectElement>) {
+    const selected = categories.find((c) => c.id === e.target.value);
+    if (!selected || selected.id === optimistic.id) {
+      setEditing(false);
+      return;
+    }
+
+    setOptimistic({ id: selected.id, name: selected.name, symbol: selected.symbol, color: selected.color });
+    setEditing(false);
+
+    const formData = new FormData();
+    formData.set("expenseId", expenseId);
+    formData.set("categoryId", selected.id);
+
+    startTransition(() => updateExpenseCategoryAction(formData));
+  }
+
   return (
-    <form ref={formRef} action={updateExpenseCategoryAction} className="inline">
-      <input type="hidden" name="expenseId" value={expenseId} />
-      <input type="hidden" name="month" value={month} />
-      <input type="hidden" name="page" value={String(page)} />
-      <select
-        name="categoryId"
-        defaultValue={currentCategoryId}
-        onChange={() => formRef.current?.requestSubmit()}
-        onBlur={() => setEditing(false)}
-        autoFocus
-      >
-        {categories.map((category) => (
-          <option key={category.id} value={category.id}>
-            {category.name}
-          </option>
-        ))}
-      </select>
-    </form>
+    <select
+      name="categoryId"
+      defaultValue={optimistic.id}
+      onChange={handleChange}
+      onBlur={() => setEditing(false)}
+      autoFocus
+    >
+      {categories.map((category) => (
+        <option key={category.id} value={category.id}>
+          {category.name}
+        </option>
+      ))}
+    </select>
   );
 }

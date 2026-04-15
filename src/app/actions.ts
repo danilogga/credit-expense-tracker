@@ -127,8 +127,6 @@ export async function updateMerchantAction(formData: FormData) {
 export async function updateExpenseCategoryAction(formData: FormData) {
   const expenseId = String(formData.get("expenseId") ?? "");
   const categoryId = String(formData.get("categoryId") ?? "");
-  const month = String(formData.get("month") ?? currentMonthKey());
-  const page = Math.max(1, Number(formData.get("page") ?? "1") || 1);
 
   const { prisma } = await import("@/lib/prisma");
   const expense = await prisma.expense.findUnique({
@@ -146,7 +144,6 @@ export async function updateExpenseCategoryAction(formData: FormData) {
   revalidatePath("/");
   revalidatePath("/expenses");
   revalidatePath("/merchants");
-  redirect(`/?month=${month}&page=${page}&ok=Categoria+da+despesa+atualizada`);
 }
 
 export async function updateExpenseInvoiceMonthAction(formData: FormData) {
