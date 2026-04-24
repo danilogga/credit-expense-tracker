@@ -17,11 +17,15 @@ export function proxy(request: NextRequest) {
   const isLoginPage = pathname === "/login";
 
   if (!isAuthenticated && !isLoginPage) {
-    return NextResponse.redirect(new URL("/login", request.url));
+    const url = request.nextUrl.clone();
+    url.pathname = "/login";
+    return NextResponse.redirect(url);
   }
 
   if (isAuthenticated && isLoginPage) {
-    return NextResponse.redirect(new URL("/", request.url));
+    const url = request.nextUrl.clone();
+    url.pathname = "/";
+    return NextResponse.redirect(url);
   }
 
   return NextResponse.next();

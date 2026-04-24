@@ -1,4 +1,7 @@
+import nextConfig from "../../../../next.config";
+
 export function GET() {
+  const basePath = nextConfig.basePath ?? "";
   const html = `<!DOCTYPE html>
 <html lang="pt-BR">
   <head>
@@ -16,7 +19,7 @@ export function GET() {
     <script src="https://unpkg.com/swagger-ui-dist@5/swagger-ui-bundle.js"></script>
     <script>
       SwaggerUIBundle({
-        url: "/api/openapi.json",
+        url: "${basePath}/api/openapi.json",
         dom_id: "#swagger-ui",
         presets: [SwaggerUIBundle.presets.apis, SwaggerUIBundle.SwaggerUIStandalonePreset],
         layout: "BaseLayout",

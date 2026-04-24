@@ -1,4 +1,7 @@
 import { NextResponse } from "next/server";
+import nextConfig from "../../../../next.config";
+
+const basePath = nextConfig.basePath ?? "";
 
 const spec = {
   openapi: "3.1.0",
@@ -7,7 +10,7 @@ const spec = {
     version: "1.0.0",
     description: "API de leitura para o app mobile de monitoramento de despesas.",
   },
-  servers: [{ url: "/" }],
+  servers: [{ url: basePath || "/" }],
   components: {
     securitySchemes: {
       bearerAuth: {
