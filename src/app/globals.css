@@ -1284,16 +1284,8 @@ button.tag:hover {
   transition: width 0.4s ease;
 }
 
-.category-line-warn {
-  background: #f5a623;
-}
-
 .category-line-over {
   background: var(--danger);
-}
-
-.category-line-percent-warn {
-  color: #f5a623;
 }
 
 .category-line-percent {

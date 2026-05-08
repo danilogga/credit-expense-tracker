@@ -1,4 +1,5 @@
 import { Lock, LockOpen } from "@phosphor-icons/react/dist/ssr";
+import Link from "next/link";
 import { resolveMonthKey } from "@/lib/date";
 import { MonthYearSelect } from "@/components/month-year-select";
 import { PaginationControl } from "@/components/pagination-control";
@@ -140,17 +141,17 @@ export default async function DashboardPage({ searchParams }: { searchParams: Se
         </div>
 
         <div className="category-filter-bar">
-          <a
+          <Link
             href={`/?month=${month}`}
             className={categoryId ? "category-filter-all" : "category-filter-all category-filter-all-active"}
           >
             Todas
-          </a>
+          </Link>
           {categories.map((cat) => {
             const active = categoryId === cat.id;
             const fg = contrastColor(cat.color);
             return (
-              <a
+              <Link
                 key={cat.id}
                 href={active ? `/?month=${month}` : `/?month=${month}&categoryId=${cat.id}`}
                 className="category-pill category-filter-pill"
@@ -162,7 +163,7 @@ export default async function DashboardPage({ searchParams }: { searchParams: Se
               >
                 <CategoryIcon icon={cat.symbol} color={active ? fg : cat.color} size={13} />
                 {cat.name}
-              </a>
+              </Link>
             );
           })}
         </div>
