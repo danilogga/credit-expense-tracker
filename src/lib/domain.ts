@@ -1,5 +1,6 @@
 import { addMonths } from "date-fns";
 import { parse as parseCsv } from "csv-parse/sync";
+import * as XLSX from "xlsx";
 import { prisma } from "@/lib/prisma";
 import { DEFAULT_CATEGORIES, DEFAULT_CATEGORY_NAME } from "@/lib/constants";
 import { parseCsvDate, toMonthKey } from "@/lib/date";
@@ -297,6 +298,165 @@ export async function importCsvContent(csvContent: string): Promise<{
           fingerprint: rowFingerprint,
           installmentCurrent,
           installmentTotal,
+        },
+        skipDuplicates: true,
+      });
+
+      if (created.count === 0) {
+        duplicates += 1;
+      } else {
+        imported += 1;
+      }
+    } catch {
+      invalidRows += 1;
+    }
+  }
+
+  return { imported, duplicates, invalidRows };
+}
+
+function parseExcelSerial(serial: number): Date {
+  const date = new Date((serial - 25569) * 86400 * 1000);
+  if (!isFinite(date.getTime())) throw new Error(`Invalid Excel date serial: ${serial}`);
+  return date;
+}
+
+function parseInstallmentXlsx(cell: string): { current: number; total: number } | null {
+  const match = cell.trim().match(/^Parcela\s+(\d+)\s+de\s+(\d+)$/i);
+  if (!match) return null;
+  const current = parseInt(match[1], 10);
+  const total = parseInt(match[2], 10);
+  if (current < 1 || total < 1 || current > total) return null;
+  return { current, total };
+}
+
+function extractLastFour(masked: string): string | null {
+  const match = masked.replace(/\s/g, "").match(/(\d{4})$/);
+  return match ? match[1] : null;
+}
+
+export async function importXlsxContent(buffer: Buffer): Promise<{
+  imported: number;
+  duplicates: number;
+  invalidRows: number;
+}> {
+  const [{ defaultCategoryId }, closedMonths] = await Promise.all([
+    ensureDefaults(),
+    getClosedMonths(),
+  ]);
+
+  const workbook = XLSX.read(buffer, { type: "buffer", cellDates: false });
+  const sheet = workbook.Sheets[workbook.SheetNames[0]];
+  const range = XLSX.utils.decode_range(sheet["!ref"] ?? "A1");
+
+  // Dynamically find the header row by scanning for "lançamento" in column C (index 2)
+  let headerRowIndex = -1;
+  for (let r = range.s.r; r <= range.e.r; r++) {
+    const cell = sheet[XLSX.utils.encode_cell({ r, c: 2 })]?.v;
+    if (typeof cell === "string" && normalizeHeader(cell) === "lancamento") {
+      headerRowIndex = r;
+      break;
+    }
+  }
+
+  if (headerRowIndex === -1) {
+    return { imported: 0, duplicates: 0, invalidRows: 0 };
+  }
+
+  let imported = 0;
+  let duplicates = 0;
+  let invalidRows = 0;
+
+  for (let r = headerRowIndex + 1; r <= range.e.r; r++) {
+    try {
+      const dateCell = sheet[XLSX.utils.encode_cell({ r, c: 1 })]?.v;   // B
+      const nameCell = sheet[XLSX.utils.encode_cell({ r, c: 2 })]?.v;   // C
+      const parcCell = sheet[XLSX.utils.encode_cell({ r, c: 3 })]?.v;   // D
+      const valCell  = sheet[XLSX.utils.encode_cell({ r, c: 4 })]?.v;   // E
+      const titCell  = sheet[XLSX.utils.encode_cell({ r, c: 6 })]?.v;   // G
+      const nomeCell = sheet[XLSX.utils.encode_cell({ r, c: 7 })]?.v;   // H
+      const typeCell = sheet[XLSX.utils.encode_cell({ r, c: 8 })]?.v;   // I
+      const cardCell = sheet[XLSX.utils.encode_cell({ r, c: 9 })]?.v;   // J
+
+      if (dateCell == null || nameCell == null || valCell == null) {
+        // Empty row signals end of transaction section
+        if (dateCell == null && nameCell == null && valCell == null) break;
+        invalidRows += 1;
+        continue;
+      }
+
+      const date = parseExcelSerial(Number(dateCell));
+      const establishmentRaw = String(nameCell).trim();
+      const amountCents = Math.round(Number(valCell) * 100);
+
+      if (!establishmentRaw || !Number.isFinite(amountCents)) {
+        invalidRows += 1;
+        continue;
+      }
+
+      if (establishmentRaw.toUpperCase().includes("PAGAMENTO EFETUADO") && amountCents < 0) {
+        continue;
+      }
+
+      const installment = parcCell ? parseInstallmentXlsx(String(parcCell)) : null;
+      const normalizedName = normalizeEstablishment(establishmentRaw);
+
+      let merchant = await prisma.merchant.findUnique({
+        where: { normalizedName },
+        select: { id: true, categoryId: true },
+      });
+
+      if (!merchant) {
+        merchant = await prisma.merchant.create({
+          data: {
+            name: establishmentRaw,
+            normalizedName,
+            categoryId: defaultCategoryId,
+          },
+          select: { id: true, categoryId: true },
+        });
+      }
+
+      const isAnuidade = establishmentRaw.toLowerCase().includes("anuidade");
+      const firstInstallmentInvoiceMonth = await computeInvoiceMonth(date);
+      const [fy, fm] = firstInstallmentInvoiceMonth.split("-").map(Number);
+      const offset = (installment && !isAnuidade) ? installment.current - 1 : 0;
+      const rawInvoiceMonth = offset === 0
+        ? firstInstallmentInvoiceMonth
+        : toMonthKey(addMonths(new Date(fy, fm - 1, 1), offset));
+      const invoiceMonth = nextOpenMonth(rawInvoiceMonth, closedMonths);
+
+      const installmentCurrent = installment?.current ?? null;
+      const installmentTotal = installment?.total ?? null;
+
+      const rowFingerprint = fingerprint({
+        date,
+        normalizedName,
+        amountCents,
+        installmentCurrent: installmentCurrent ?? undefined,
+        installmentTotal: installmentTotal ?? undefined,
+      });
+
+      const cardholderName = nomeCell ? String(nomeCell).trim() || null : null;
+      const cardType = typeCell ? String(typeCell).trim() || null : null;
+      const cardLastFour = cardCell ? extractLastFour(String(cardCell)) : null;
+      const titularidade = titCell ? String(titCell).trim() || null : null;
+
+      const created = await prisma.expense.createMany({
+        data: {
+          expenseDate: date,
+          invoiceMonth,
+          amountCents,
+          establishmentRaw,
+          merchantId: merchant.id,
+          categoryId: merchant.categoryId,
+          fingerprint: rowFingerprint,
+          installmentCurrent,
+          installmentTotal,
+          cardholderName,
+          cardType,
+          cardLastFour,
+          titularidade,
         },
         skipDuplicates: true,
       });

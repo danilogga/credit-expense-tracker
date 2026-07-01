@@ -29,8 +29,8 @@ export function ImportDropzone({ action }: Props) {
         ref={inputRef}
         className="visually-hidden-input"
         type="file"
-        name="csv"
-        accept=".csv,text/csv"
+        name="file"
+        accept=".csv,text/csv,.xlsx"
         required
         onChange={(event) => setFileList(event.currentTarget.files)}
       />
@@ -52,7 +52,7 @@ export function ImportDropzone({ action }: Props) {
           setFileList(event.dataTransfer.files);
         }}
       >
-        <strong>Arraste e solte o CSV aqui</strong>
+        <strong>Arraste e solte o arquivo CSV ou XLSX aqui</strong>
         <p className="muted">ou clique para selecionar o arquivo</p>
         <span className="tag">{fileName || "Nenhum arquivo selecionado"}</span>
       </div>

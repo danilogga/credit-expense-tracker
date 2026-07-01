@@ -50,6 +50,11 @@ const spec = {
           amountCents: { type: "integer", example: 4590 },
           installmentCurrent: { type: ["integer", "null"], examples: [2, null] },
           installmentTotal: { type: ["integer", "null"], examples: [3, null] },
+          ignored: { type: "boolean", example: false },
+          cardholderName: { type: ["string", "null"], example: "Danilo Costa De Carvalho" },
+          cardType: { type: ["string", "null"], example: "Físico" },
+          cardLastFour: { type: ["string", "null"], example: "2625" },
+          titularidade: { type: ["string", "null"], example: "Titular" },
           merchant: { $ref: "#/components/schemas/MerchantSummary" },
           category: {
             type: "object",

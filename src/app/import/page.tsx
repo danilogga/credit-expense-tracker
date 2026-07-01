@@ -1,4 +1,4 @@
-import { importCsvAction } from "@/app/actions";
+import { importFileAction } from "@/app/actions";
 import { ImportDropzone } from "@/app/import/import-dropzone";
 import { QueryToast } from "@/components/query-toast";
 
@@ -16,13 +16,13 @@ export default async function ImportPage({ searchParams }: { searchParams: Searc
       <QueryToast successMessage={successMessage} errorMessage={params.error} />
       <div className="page-header">
         <div>
-          <h1>Importação de CSV</h1>
-          <p className="muted">Formato esperado: colunas de <b>data</b>, <b>estabelecimento</b> (ou <b>lançamento</b>) e <b>valor</b></p>
+          <h1>Importação de arquivo</h1>
+          <p className="muted">Aceita <b>XLSX</b> do Itaú ou <b>CSV</b> (colunas: <b>data</b>, <b>estabelecimento</b> e <b>valor</b>)</p>
         </div>
       </div>
 
       <div className="panel">
-      <ImportDropzone action={importCsvAction} />
+      <ImportDropzone action={importFileAction} />
 
       {hasResult ? (
         <div>

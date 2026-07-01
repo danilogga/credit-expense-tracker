@@ -46,6 +46,10 @@ model Expense {
   installmentTotal    Int?
   ignored             Boolean   @default(false)
   importedAt          DateTime  @default(now())
+  cardholderName      String?
+  cardType            String?
+  cardLastFour        String?
+  titularidade        String?
 
   merchant Merchant @relation(fields: [merchantId], references: [id])
   category Category @relation(fields: [categoryId], references: [id])

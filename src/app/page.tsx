@@ -1,4 +1,4 @@
-import { Lock, LockOpen } from "@phosphor-icons/react/dist/ssr";
+import { Lock, LockOpen, CreditCard, Globe, Wallet } from "@phosphor-icons/react/dist/ssr";
 import Link from "next/link";
 import { resolveMonthKey } from "@/lib/date";
 import { MonthYearSelect } from "@/components/month-year-select";
@@ -19,6 +19,13 @@ import { dashboardForMonth, ensureDefaults, isInvoiceClosed } from "@/lib/domain
 import { formatCents } from "@/lib/money";
 import { prisma } from "@/lib/prisma";
 import { cookies } from "next/headers";
+
+function CardTypeIcon({ cardType }: { cardType: string }) {
+  const t = cardType.toLowerCase();
+  if (t.includes("wallet")) return <Wallet size={13} style={{ color: "var(--orange)" }} />;
+  if (t.includes("virtual") || t.includes("recorrente")) return <Globe size={13} style={{ color: "#8b5cf6" }} />;
+  return <CreditCard size={13} style={{ color: "var(--teal)" }} />;
+}
 
 function contrastColor(hex: string): string {
   const r = parseInt(hex.slice(1, 3), 16);
@@ -176,6 +183,8 @@ export default async function DashboardPage({ searchParams }: { searchParams: Se
               <th>Estabelecimento</th>
               <th>Categoria</th>
               <th>Parcela</th>
+              <th>Portador</th>
+              <th>Cartão</th>
               <th className="col-right">Valor</th>
               <th style={{ width: "44px" }}></th>
             </tr>
@@ -183,7 +192,7 @@ export default async function DashboardPage({ searchParams }: { searchParams: Se
           <tbody>
             {expenses.length === 0 ? (
               <tr>
-                <td colSpan={7}>Sem despesas para esta fatura.</td>
+                <td colSpan={9}>Sem despesas para esta fatura.</td>
               </tr>
             ) : (
               expenses.map((expense) => (
@@ -218,6 +227,28 @@ export default async function DashboardPage({ searchParams }: { searchParams: Se
                     {expense.installmentCurrent != null && expense.installmentTotal != null
                       ? `${expense.installmentCurrent}/${expense.installmentTotal}`
                       : "—"}
+                  </td>
+                  <td className="muted">
+                    {expense.cardholderName
+                      ? <span>
+                          {expense.cardholderName.split(" ")[0]}
+                          {expense.titularidade && expense.titularidade !== "Titular" && (
+                            <span className="tag" style={{ marginLeft: 6, fontSize: "0.7rem" }}>{expense.titularidade}</span>
+                          )}
+                        </span>
+                      : "—"}
+                  </td>
+                  <td className="muted">
+                    {expense.cardLastFour ? (
+                      <span className="inline">
+                        {`••••${expense.cardLastFour}`}
+                        {expense.cardType && (
+                          <span data-tooltip={expense.cardType} data-tooltip-pos="top" style={{ display: "inline-flex", cursor: "default" }}>
+                            <CardTypeIcon cardType={expense.cardType} />
+                          </span>
+                        )}
+                      </span>
+                    ) : "—"}
                   </td>
                   <td className="col-right">{formatCents(expense.amountCents)}</td>
                   <td>

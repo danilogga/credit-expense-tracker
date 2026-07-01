@@ -4,7 +4,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { DEFAULT_CATEGORY_NAME, normalizeCategoryIcon } from "@/lib/constants";
 import { currentMonthKey, resolveMonthKey } from "@/lib/date";
-import { importCsvContent, setDefaultClosingDay, closeInvoice, openInvoice } from "@/lib/domain";
+import { importCsvContent, importXlsxContent, setDefaultClosingDay, closeInvoice, openInvoice } from "@/lib/domain";
 import { parseMoneyToCents } from "@/lib/money";
 
 export async function importCsvAction(formData: FormData) {
@@ -16,6 +16,32 @@ export async function importCsvAction(formData: FormData) {
 
   const content = await file.text();
   const result = await importCsvContent(content);
+
+  revalidatePath("/");
+  revalidatePath("/import");
+  revalidatePath("/expenses");
+  revalidatePath("/merchants");
+
+  redirect(
+    `/import?imported=${result.imported}&duplicates=${result.duplicates}&invalid=${result.invalidRows}`,
+  );
+}
+
+export async function importFileAction(formData: FormData) {
+  const file = formData.get("file") as File | null;
+
+  if (!file) {
+    redirect("/import?error=Arquivo+obrigatório");
+  }
+
+  let result: { imported: number; duplicates: number; invalidRows: number };
+
+  if (file.name.toLowerCase().endsWith(".xlsx")) {
+    const buffer = Buffer.from(await file.arrayBuffer());
+    result = await importXlsxContent(buffer);
+  } else {
+    result = await importCsvContent(await file.text());
+  }
 
   revalidatePath("/");
   revalidatePath("/import");

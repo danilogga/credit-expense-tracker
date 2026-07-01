@@ -95,6 +95,10 @@ export async function GET(request: NextRequest) {
       installmentCurrent: e.installmentCurrent,
       installmentTotal: e.installmentTotal,
       ignored: e.ignored,
+      cardholderName: e.cardholderName,
+      cardType: e.cardType,
+      cardLastFour: e.cardLastFour,
+      titularidade: e.titularidade,
       merchant: {
         id: e.merchant.id,
         name: e.merchant.name,
